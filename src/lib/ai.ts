@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function getGeminiKey(): Promise<string | null> {
   const setting = await prisma.appSetting.findUnique({ where: { key: "gemini_api_key" } });
-  return setting?.value || null;
+  return setting?.value || process.env.GEMINI_API_KEY || null;
 }
 
 export async function extractTextFromFile(buffer: Buffer, filename: string): Promise<string> {
