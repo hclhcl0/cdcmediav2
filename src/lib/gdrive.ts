@@ -19,15 +19,20 @@ export async function getDriveSettings(): Promise<DriveSettings | null> {
 
   const map = Object.fromEntries(settings.map((s: any) => [s.key, s.value]));
 
-  if (!map.gdrive_client_id || !map.gdrive_client_secret || !map.gdrive_refresh_token) {
+  const clientId = map.gdrive_client_id || process.env.GDRIVE_CLIENT_ID || process.env.GOOGLE_DRIVE_CLIENT_ID;
+  const clientSecret = map.gdrive_client_secret || process.env.GDRIVE_CLIENT_SECRET || process.env.GOOGLE_DRIVE_CLIENT_SECRET;
+  const refreshToken = map.gdrive_refresh_token || process.env.GDRIVE_REFRESH_TOKEN || process.env.GOOGLE_DRIVE_REFRESH_TOKEN;
+  const folderId = map.gdrive_folder_id || process.env.GDRIVE_FOLDER_ID || process.env.GOOGLE_DRIVE_FOLDER_ID;
+
+  if (!clientId || !clientSecret || !refreshToken) {
     return null;
   }
 
   return {
-    clientId: map.gdrive_client_id,
-    clientSecret: map.gdrive_client_secret,
-    refreshToken: map.gdrive_refresh_token,
-    folderId: map.gdrive_folder_id,
+    clientId,
+    clientSecret,
+    refreshToken,
+    folderId,
   };
 }
 
