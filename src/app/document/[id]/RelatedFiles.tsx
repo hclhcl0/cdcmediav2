@@ -134,15 +134,6 @@ export default function RelatedFiles({ relatedFiles }: { relatedFiles: any[] }) 
 
                 {/* Floating Badges */}
                 <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1">
-                  {!rel.isPublic && (
-                    <span
-                      className="w-7 h-7 rounded-full backdrop-blur-md bg-amber-500/90 text-white border border-amber-300/40 shadow-md shadow-amber-500/20 flex items-center justify-center transition-transform group-hover:scale-110 shrink-0"
-                      title="Tài liệu chưa được chia sẻ"
-                      aria-label="Chưa chia sẻ"
-                    >
-                      <Lock className="w-3.5 h-3.5 text-amber-100" />
-                    </span>
-                  )}
                   {isAlbum && (
                     <span className="backdrop-blur-md bg-purple-600/80 text-white border border-purple-400/30 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
                       <Layers className="w-2.5 h-2.5" /> Album
