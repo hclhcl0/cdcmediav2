@@ -421,12 +421,12 @@ export default function PublicFileList({ files, categories, groups }: Props) {
 
   return (
     <div className="flex flex-col gap-3.5 sm:gap-4">
-      {/* 1. TOP: Phân hệ tabs (Apple TV sleek pills) */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      {/* 1. TOP: Phân hệ tabs (Apple TV sleek responsive pills - flex-wrap no horizontal scroll) */}
+      <div className="flex flex-wrap gap-1.5 sm:gap-2 pb-1">
         <button
           onClick={() => setSelectedGroup("")}
           className={clsx(
-            "relative shrink-0 px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2",
+            "relative px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-full text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2",
             !selectedGroup
               ? "text-white shadow-md shadow-blue-500/20"
               : "bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
@@ -435,7 +435,7 @@ export default function PublicFileList({ files, categories, groups }: Props) {
           {!selectedGroup && (
             <motion.div
               layoutId="active-group"
-              className="absolute inset-0 bg-gradient-to-r from-[#1D78B8] to-[#0d5485] dark:from-sky-600 dark:to-blue-700 rounded-full shadow-md"
+              className="absolute inset-0 bg-gradient-to-r from-[#1D78B8] to-[#0d5485] dark:from-sky-600 dark:to-blue-700 rounded-xl sm:rounded-full shadow-md"
               initial={false}
               transition={{ type: "spring", stiffness: 500, damping: 35 }}
             />
@@ -449,7 +449,7 @@ export default function PublicFileList({ files, categories, groups }: Props) {
               key={grp.id}
               onClick={() => setSelectedGroup(grp.id)}
               className={clsx(
-                "relative shrink-0 px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2",
+                "relative px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-full text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2",
                 selectedGroup === grp.id
                   ? "text-white shadow-md shadow-blue-500/20"
                   : "bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
@@ -458,14 +458,14 @@ export default function PublicFileList({ files, categories, groups }: Props) {
               {selectedGroup === grp.id && (
                 <motion.div
                   layoutId="active-group"
-                  className="absolute inset-0 bg-gradient-to-r from-[#1D78B8] to-[#0d5485] dark:from-sky-600 dark:to-blue-700 rounded-full shadow-md"
+                  className="absolute inset-0 bg-gradient-to-r from-[#1D78B8] to-[#0d5485] dark:from-sky-600 dark:to-blue-700 rounded-xl sm:rounded-full shadow-md"
                   initial={false}
                   transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
               )}
-              <span className="relative z-10 flex items-center gap-2">
+              <span className="relative z-10 flex items-center gap-1.5 sm:gap-2">
                 <span className={clsx(selectedGroup === grp.id ? "text-white" : "text-blue-500 dark:text-sky-400")}>
-                  <IconComponent className="w-4 h-4" />
+                  <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </span>
                 <span>{grp.name}</span>
               </span>
@@ -475,7 +475,7 @@ export default function PublicFileList({ files, categories, groups }: Props) {
       </div>
 
       {/* 2. DƯỚI TẤT CẢ PHÂN HỆ: Unified Search & Format Filter Toolbar */}
-      <div className="space-y-2 pb-2.5 pt-1 border-y border-slate-100 dark:border-slate-800">
+      <div className="space-y-2.5 pb-2.5 pt-1 border-y border-slate-100 dark:border-slate-800">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">
           {/* Compact Search Input with Clear Button */}
           <div className="relative w-full lg:w-72 xl:w-80 shrink-0">
@@ -500,8 +500,8 @@ export default function PublicFileList({ files, categories, groups }: Props) {
             )}
           </div>
 
-          {/* Labeled Format Filter Buttons on the Same Row */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5 min-w-0 flex-1 justify-start lg:justify-end">
+          {/* Labeled Format Filter Buttons - flex-wrap to fit naturally on mobile and tablet */}
+          <div className="flex flex-wrap items-center gap-1.5 py-0.5 min-w-0 flex-1 justify-start lg:justify-end">
             {FILE_TYPE_FILTERS.map((f) => {
               const active = typeFilter === f.value;
               const Icon = f.icon;
@@ -510,7 +510,7 @@ export default function PublicFileList({ files, categories, groups }: Props) {
                   key={f.value}
                   onClick={() => setTypeFilter(f.value)}
                   className={clsx(
-                    "px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 shadow-2xs border select-none active:scale-95",
+                    "px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 shadow-2xs border select-none active:scale-95",
                     active
                       ? "bg-blue-600 dark:bg-sky-600 text-white border-blue-500 shadow-xs shadow-blue-500/20"
                       : "bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
@@ -540,11 +540,11 @@ export default function PublicFileList({ files, categories, groups }: Props) {
       <div className="flex-1 min-w-0">
         {/* Categories if a group is selected */}
         {selectedGroup && currentGroupCategories.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 pb-1 mb-3">
             <button
               onClick={() => setSelectedCategory("")}
               className={clsx(
-                "relative px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors",
+                "relative px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-colors",
                 !selectedCategory
                   ? "text-white shadow-sm"
                   : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750"
@@ -553,7 +553,7 @@ export default function PublicFileList({ files, categories, groups }: Props) {
               {!selectedCategory && (
                 <motion.div
                   layoutId="active-category"
-                  className="absolute inset-0 bg-blue-600 dark:bg-sky-600 rounded-full shadow-sm"
+                  className="absolute inset-0 bg-blue-600 dark:bg-sky-600 rounded-xl sm:rounded-full shadow-sm"
                   initial={false}
                   transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
@@ -565,7 +565,7 @@ export default function PublicFileList({ files, categories, groups }: Props) {
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={clsx(
-                  "relative px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors",
+                  "relative px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-colors",
                   selectedCategory === cat.id
                     ? "text-white shadow-sm"
                     : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750"
@@ -574,7 +574,7 @@ export default function PublicFileList({ files, categories, groups }: Props) {
                 {selectedCategory === cat.id && (
                   <motion.div
                     layoutId="active-category"
-                    className="absolute inset-0 bg-blue-600 dark:bg-sky-600 rounded-full shadow-sm"
+                    className="absolute inset-0 bg-blue-600 dark:bg-sky-600 rounded-xl sm:rounded-full shadow-sm"
                     initial={false}
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />

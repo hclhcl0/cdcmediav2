@@ -226,7 +226,7 @@ export default function UserFilesList({ categories, isAdmin, refreshSignal }: Pr
               </button>
             </div>
             {/* Pill filter tabs for groups */}
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+            <div className="flex flex-wrap gap-1.5 pb-0.5">
               <button
                 onClick={() => setSelectedGroupFilter("")}
                 className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
