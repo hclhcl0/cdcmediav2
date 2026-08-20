@@ -196,32 +196,34 @@ export default function UploadFileForm({ categories, onUploaded }: Props) {
             </div>
           )}
 
-          {/* Progress / Submit button */}
-          {uploading ? (
-            <div className="space-y-2 p-3 bg-blue-50/50 dark:bg-blue-950/40 rounded-xl border border-blue-100 dark:border-blue-900/50">
-              <div className="flex justify-between text-xs text-blue-800 dark:text-blue-300 font-semibold">
-                <span>Đang tải lên…</span>
-                <span>{progress}%</span>
+          {/* Progress / Submit button on desktop */}
+          <div className="hidden lg:block">
+            {uploading ? (
+              <div className="space-y-2 p-3 bg-blue-50/50 dark:bg-blue-950/40 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                <div className="flex justify-between text-xs text-blue-800 dark:text-blue-300 font-semibold">
+                  <span>Đang tải lên…</span>
+                  <span>{progress}%</span>
+                </div>
+                <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-200"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <button type="button" onClick={cancelUpload} className="btn-danger text-xs w-full py-1.5 mt-1">
+                  Hủy tải lên
+                </button>
               </div>
-              <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-200"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <button type="button" onClick={cancelUpload} className="btn-danger text-xs w-full py-1.5 mt-1">
-                Hủy tải lên
+            ) : (
+              <button
+                type="submit"
+                disabled={(mode === "file" && files.length === 0) || (mode === "link" && !googleDriveLink) || !title || !categoryId}
+                className="btn-primary w-full py-3 flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 text-sm font-bold"
+              >
+                <Upload className="w-4 h-4" /> Bắt đầu tải lên
               </button>
-            </div>
-          ) : (
-            <button
-              type="submit"
-              disabled={(mode === "file" && files.length === 0) || (mode === "link" && !googleDriveLink) || !title || !categoryId}
-              className="btn-primary w-full py-2.5 sm:py-3 flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 text-sm font-bold"
-            >
-              <Upload className="w-4 h-4" /> Bắt đầu tải lên
-            </button>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Right Column: Metadata Fields */}
@@ -234,7 +236,7 @@ export default function UploadFileForm({ categories, onUploaded }: Props) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Nhập tiêu đề rõ ràng, dễ tìm kiếm"
-              className="input-base text-xs sm:text-sm h-9.5 rounded-xl"
+              className="input-base text-xs sm:text-sm h-10 rounded-xl"
               required
             />
           </div>
@@ -363,8 +365,37 @@ export default function UploadFileForm({ categories, onUploaded }: Props) {
               </div>
             )}
           </div>
+
+          {/* Mobile Submit Button (at bottom of form) */}
+          <div className="pt-2 block lg:hidden">
+              {uploading ? (
+                <div className="space-y-2 p-3 bg-blue-50/50 dark:bg-blue-950/40 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                  <div className="flex justify-between text-xs text-blue-800 dark:text-blue-300 font-semibold">
+                    <span>Đang tải lên…</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-200"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <button type="button" onClick={cancelUpload} className="btn-danger text-xs w-full py-1.5 mt-1">
+                    Hủy tải lên
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={(mode === "file" && files.length === 0) || (mode === "link" && !googleDriveLink) || !title || !categoryId}
+                  className="btn-primary w-full py-3 flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 text-sm font-bold"
+                >
+                  <Upload className="w-4 h-4" /> Bắt đầu tải lên
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </form>
-  );
-}
+      </form>
+    );
+  }
