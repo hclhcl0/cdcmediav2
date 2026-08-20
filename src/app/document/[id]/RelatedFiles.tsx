@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { formatFileSize, formatDate } from "@/utils/format";
-import { Download, Headphones, Layers, Lock } from "lucide-react";
+import { Download, Headphones, Layers, Lock, Eye } from "lucide-react";
 import { getFileHeroIconInfo } from "@/components/PublicFileList";
 import clsx from "clsx";
 
