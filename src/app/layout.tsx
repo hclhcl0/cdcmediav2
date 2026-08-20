@@ -70,7 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main className="flex-1">{children}</main>
           
           {/* Banner ngang BOTTOM — trên Footer */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full my-4">
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 w-full my-3 sm:my-4">
             <BannerStrip position="BOTTOM" className="w-full overflow-hidden" />
           </div>
           

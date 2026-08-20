@@ -50,9 +50,9 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
   const allItems = [file, ...file.attachments];
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
+    <div className="max-w-7xl mx-auto px-2 sm:px-6 py-3 sm:py-8 transition-colors duration-300">
       <ViewTracker fileId={file.id} />
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
         <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 hover:text-indigo-800 dark:hover:text-indigo-200 rounded-xl text-sm font-bold transition-colors border border-indigo-100/60 dark:border-indigo-800/60 shadow-sm">
           <ArrowLeft className="w-4 h-4" /> Quay lại kho tài liệu
         </Link>

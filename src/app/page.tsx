@@ -86,7 +86,7 @@ export default async function HomePage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 space-y-4 transition-colors duration-300">
+    <div className="max-w-7xl mx-auto px-2 sm:px-6 py-2.5 sm:py-4 space-y-3 sm:space-y-4 transition-colors duration-300">
       {/* Ultra-compact Sleek Hero & Stats Bar */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-800/80 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl shadow-xs transition-colors duration-300">
         {/* Subtle background glow */}
@@ -95,7 +95,7 @@ export default async function HomePage() {
           <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-[#F26A21]/10 dark:bg-[#fb923c]/10 blur-2xl" />
         </div>
 
-        <div className="relative px-4 py-3.5 sm:px-6 sm:py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
+        <div className="relative px-3 py-3 sm:px-6 sm:py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
           {/* Headline & Brief info */}
           <div className="min-w-0 text-left">
             <h1 className="text-lg sm:text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-tight flex items-center gap-2">
@@ -112,7 +112,7 @@ export default async function HomePage() {
             {stats.map((s) => (
               <div
                 key={s.label}
-                className={`flex items-center justify-center sm:justify-start gap-2.5 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl ${s.bg} border ${s.border} backdrop-blur-md shadow-2xs hover:shadow-xs transition-all w-full md:w-auto`}
+                className={`flex items-center justify-center sm:justify-start gap-2.5 sm:gap-3 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl ${s.bg} border ${s.border} backdrop-blur-md shadow-2xs hover:shadow-xs transition-all w-full md:w-auto`}
               >
                 <div className="p-1.5 sm:p-2 rounded-lg bg-white/80 dark:bg-black/25 shadow-2xs shrink-0 border border-black/5 dark:border-white/10">
                   <s.icon className={`w-4 h-4 ${s.color}`} />
@@ -135,7 +135,7 @@ export default async function HomePage() {
       <BannerStrip position="MIDDLE" className="rounded-2xl overflow-hidden shadow-sm" />
 
       {/* File list */}
-      <div className="w-full bg-white dark:bg-slate-900/90 shadow-xl shadow-slate-200/50 dark:shadow-black/40 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 relative z-10 transition-colors duration-300">
+      <div className="w-full bg-white dark:bg-slate-900/90 shadow-xl shadow-slate-200/50 dark:shadow-black/40 rounded-2xl p-2.5 sm:p-6 border border-slate-200/80 dark:border-slate-800 relative z-10 transition-colors duration-300">
         <PublicFileList files={files as never} categories={categories as never} groups={groups} />
       </div>
 

@@ -40,7 +40,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+    <div className="max-w-7xl mx-auto px-2 sm:px-6 py-3 sm:py-8 space-y-4 sm:space-y-6 transition-colors duration-300">
       {/* Compact Hero Header */}
       <div className="card !py-4 !px-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         {/* Left: greeting */}
