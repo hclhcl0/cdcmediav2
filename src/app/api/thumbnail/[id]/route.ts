@@ -74,8 +74,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return response;
     }
 
-    // 3. Fallback to custom thumbnailUrl if exists and not googleusercontent
-    if (file.thumbnailUrl && !file.thumbnailUrl.includes('googleusercontent.com')) {
+    // 3. Fallback to custom thumbnailUrl if exists
+    if (file.thumbnailUrl) {
       const response = NextResponse.redirect(file.thumbnailUrl);
       response.headers.set("Cache-Control", "public, max-age=86400");
       return response;
