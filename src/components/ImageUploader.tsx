@@ -86,9 +86,9 @@ export default function ImageUploader({ onUploaded, currentUrl, maxSizeMB = 10 }
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         onClick={() => !uploading && inputRef.current?.click()}
-        className="relative border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl
+        className="relative border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 rounded-xl
                    flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors
-                   bg-slate-50/50 hover:bg-blue-50/20 overflow-hidden"
+                   bg-slate-50/50 dark:bg-slate-800/40 hover:bg-blue-50/20 dark:hover:bg-blue-950/20 overflow-hidden"
         style={{ minHeight: preview ? undefined : "80px" }}
       >
         {preview ? (
@@ -102,7 +102,7 @@ export default function ImageUploader({ onUploaded, currentUrl, maxSizeMB = 10 }
             />
             {/* Overlay khi uploading */}
             {uploading && (
-              <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
+              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2">
                 <Loader2 className="w-6 h-6 text-white animate-spin" />
                 <div className="w-32 h-1.5 bg-white/30 rounded-full overflow-hidden">
                   <div className="h-full bg-white rounded-full transition-all" style={{ width: `${progress}%` }} />
@@ -114,30 +114,30 @@ export default function ImageUploader({ onUploaded, currentUrl, maxSizeMB = 10 }
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); clear(); }}
-                className="absolute top-2 right-2 p-1 rounded-full bg-black/40 text-white hover:bg-black/60 transition"
+                className="absolute top-2 right-2 p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
             {/* Click để đổi ảnh */}
             {!uploading && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent py-2 text-center">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent py-2 text-center">
                 <p className="text-white text-xs font-medium">Click để đổi ảnh</p>
               </div>
             )}
           </>
         ) : (
-          <div className="py-4 flex flex-col items-center gap-1.5 text-slate-400">
+          <div className="py-4 flex flex-col items-center gap-1.5 text-slate-400 dark:text-slate-500">
             {uploading ? (
               <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
             ) : (
               <ImageIcon className="w-7 h-7" />
             )}
             <div className="text-center">
-              <p className="text-xs font-medium text-slate-500">
-                Kéo thả hoặc <span className="text-blue-600">chọn ảnh</span>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                Kéo thả hoặc <span className="text-blue-600 dark:text-blue-400">chọn ảnh</span>
               </p>
-              <p className="text-[11px] text-slate-400">JPG, PNG, GIF, WebP · Tối đa {maxSizeMB}MB</p>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">JPG, PNG, GIF, WebP · Tối đa {maxSizeMB}MB</p>
             </div>
           </div>
         )}
@@ -152,14 +152,14 @@ export default function ImageUploader({ onUploaded, currentUrl, maxSizeMB = 10 }
 
       {/* Progress khi không có preview */}
       {uploading && !preview && (
-        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
           <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <p className="text-xs text-red-500 flex items-center gap-1">
+        <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
           <Upload className="w-3 h-3" /> {error}
         </p>
       )}

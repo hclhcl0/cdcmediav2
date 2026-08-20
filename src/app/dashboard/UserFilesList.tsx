@@ -1,24 +1,27 @@
 // src/app/dashboard/UserFilesList.tsx
 "use client";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Pencil, Trash2, Eye, Download, X, Check, RefreshCw, Filter, Sparkles } from "lucide-react";
-import toast from "react-hot-toast";
-import { formatFileSize, formatDate } from "@/utils/format";
-import { FileIcon } from "@/utils/fileIcon";
 import Link from "next/link";
+import { Eye, Download, Pencil, Trash2, RefreshCw, Sparkles, Filter, Lock } from "lucide-react";
+import { FileIcon } from "@/utils/fileIcon";
+import { formatFileSize, formatDate } from "@/utils/format";
 import EditFileModal from "./EditFileModal";
-import type { FileWithRelations } from "@/types";
+import toast from "react-hot-toast";
+import type { CategoryWithCount, FileWithRelations } from "@/types";
 
-interface Category { id: string; name: string; }
-interface Category { id: string; name: string; group?: string; color?: string; }
-interface Group { id: string; name: string; }
-interface Props {
-  isAdmin: boolean;
-  categories: Category[];
-  refreshSignal: number;
+interface Group {
+  id: string;
+  name: string;
+  icon: string;
 }
 
-export default function UserFilesList({ isAdmin, categories, refreshSignal }: Props) {
+interface Props {
+  categories: CategoryWithCount[];
+  isAdmin: boolean;
+  refreshSignal?: number;
+}
+
+export default function UserFilesList({ categories, isAdmin, refreshSignal }: Props) {
   const [files, setFiles] = useState<FileWithRelations[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +37,7 @@ export default function UserFilesList({ isAdmin, categories, refreshSignal }: Pr
     setLoading(true);
     try {
       const [filesRes, groupsRes] = await Promise.all([
-        fetch("/api/files?limit=200"),
+        fetch("/api/files?limit=1000"),
         fetch("/api/groups")
       ]);
       const filesData = await filesRes.json();
@@ -65,7 +68,6 @@ export default function UserFilesList({ isAdmin, categories, refreshSignal }: Pr
     if (!selectedGroupFilter) return files;
     return files.filter(f => {
       const cat = categories.find(c => c.id === f.categoryId);
-      // fallback if needed
       const catGroup = cat?.group || getCategoryGroup(cat?.name || f.category?.name || "", groups);
       return catGroup === selectedGroupFilter;
     });
@@ -153,7 +155,7 @@ export default function UserFilesList({ isAdmin, categories, refreshSignal }: Pr
 
   if (loading) {
     return (
-      <div className="card flex items-center justify-center py-16 text-slate-400 gap-2">
+      <div className="card flex items-center justify-center py-16 text-slate-400 dark:text-slate-500 gap-2">
         <RefreshCw className="w-5 h-5 animate-spin" /> Đang tải…
       </div>
     );
@@ -161,7 +163,7 @@ export default function UserFilesList({ isAdmin, categories, refreshSignal }: Pr
 
   if (files.length === 0) {
     return (
-      <div className="card flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
+      <div className="card flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500 gap-3">
         <Download className="w-10 h-10 opacity-30" />
         <p className="font-medium">Chưa có tài liệu nào</p>
         <p className="text-sm">Hãy tải lên tài liệu đầu tiên</p>
@@ -173,16 +175,16 @@ export default function UserFilesList({ isAdmin, categories, refreshSignal }: Pr
     <>
       <div className="card overflow-hidden p-0">
         {selectedFiles.size > 0 ? (
-          <div className="px-5 py-3 border-b border-blue-100 bg-blue-50/50 flex flex-wrap items-center justify-between gap-3 animate-in slide-in-from-top-2">
+          <div className="px-5 py-3 border-b border-blue-100 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/40 flex flex-wrap items-center justify-between gap-3 animate-in slide-in-from-top-2">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-blue-800 bg-blue-100 px-2 py-0.5 rounded">Đã chọn {selectedFiles.size}</span>
-              <button onClick={() => setSelectedFiles(new Set())} className="text-xs text-blue-600 hover:underline">Bỏ chọn</button>
+              <span className="text-sm font-semibold text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/60 px-2 py-0.5 rounded">Đã chọn {selectedFiles.size}</span>
+              <button onClick={() => setSelectedFiles(new Set())} className="text-xs text-blue-600 dark:text-blue-400 hover:underline">Bỏ chọn</button>
             </div>
             <div className="flex items-center gap-2">
               <button 
                 onClick={handleBulkDescribe}
                 disabled={isBulkUpdating}
-                className="btn-secondary py-1.5 text-sm h-auto shrink-0 flex items-center gap-1 border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100"
+                className="btn-secondary py-1.5 text-sm h-auto shrink-0 flex items-center gap-1 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
                 title="Tự động đọc nội dung và tạo mô tả bằng AI"
               >
                 {isBulkUpdating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
@@ -211,34 +213,49 @@ export default function UserFilesList({ isAdmin, categories, refreshSignal }: Pr
             </div>
           </div>
         ) : (
-          <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap gap-3 items-center justify-between">
-            <h2 className="font-bold text-slate-800 flex items-center gap-2">
-              {isAdmin ? "Tất cả tài liệu" : "Tài liệu của bạn"}
-              <span className="text-sm font-normal text-slate-400">({filteredFiles.length})</span>
-            </h2>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-2 border border-slate-200 rounded-lg px-2">
-                <Filter className="w-4 h-4 text-slate-400" />
-                <select
-                  value={selectedGroupFilter}
-                  onChange={(e) => setSelectedGroupFilter(e.target.value)}
-                  className="input-base border-none shadow-none focus:ring-0 px-1 py-1.5 text-sm h-auto w-auto min-w-[150px]"
-                >
-                  <option value="">Tất cả phân hệ</option>
-                  {groups.map(g => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
-              </div>
-              <button onClick={fetchFilesAndGroups} className="btn-secondary text-xs flex items-center gap-1 py-1.5">
-                <RefreshCw className="w-3 h-3" /> Làm mới
+          <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+            {/* Title + Actions row */}
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h2 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 text-sm">
+                {isAdmin ? "Tất cả tài liệu" : "Tài liệu của bạn"}
+                <span className="text-xs font-normal text-slate-400 dark:text-slate-500">({filteredFiles.length})</span>
+              </h2>
+              <button onClick={fetchFilesAndGroups} className="btn-secondary text-xs flex items-center gap-1 py-1.5 h-auto" title="Làm mới">
+                <RefreshCw className="w-3 h-3" />
+                <span className="hidden sm:inline">Làm mới</span>
               </button>
+            </div>
+            {/* Pill filter tabs for groups */}
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+              <button
+                onClick={() => setSelectedGroupFilter("")}
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                  !selectedGroupFilter
+                    ? "bg-blue-600 dark:bg-sky-600 text-white border-blue-500"
+                    : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
+                }`}
+              >
+                Tất cả
+              </button>
+              {groups.map(g => (
+                <button
+                  key={g.id}
+                  onClick={() => setSelectedGroupFilter(g.id)}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                    selectedGroupFilter === g.id
+                      ? "bg-blue-600 dark:bg-sky-600 text-white border-blue-500"
+                      : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  }`}
+                >
+                  {g.name}
+                </button>
+              ))}
             </div>
           </div>
         )}
 
-        <div className="divide-y divide-slate-50">
-          <div className="px-5 py-3 bg-slate-50 flex items-center gap-3 border-b border-slate-100">
+        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="px-5 py-3 bg-slate-50 dark:bg-slate-900/60 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800">
             <input 
               type="checkbox"
               checked={
@@ -255,13 +272,13 @@ export default function UserFilesList({ isAdmin, categories, refreshSignal }: Pr
                 }
                 setSelectedFiles(newSet);
               }}
-              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
             />
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên tài liệu</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tên tài liệu</span>
           </div>
 
           {filteredFiles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((file) => (
-            <div key={file.id} className="px-5 py-4 hover:bg-slate-50/50 transition-colors">
+            <div key={file.id} className="px-5 py-3.5 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors group">
               <div className="flex items-center gap-3">
                 <input 
                   type="checkbox"
@@ -272,10 +289,11 @@ export default function UserFilesList({ isAdmin, categories, refreshSignal }: Pr
                     else newSet.delete(file.id);
                     setSelectedFiles(newSet);
                   }}
-                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
                 />
-                <div className="w-10 h-10 shrink-0 rounded-lg overflow-hidden flex items-center justify-center bg-slate-100 relative">
+                <div className="w-10 h-10 shrink-0 rounded-lg overflow-hidden flex items-center justify-center bg-slate-100 dark:bg-slate-800 relative border border-slate-200/60 dark:border-slate-700/60">
                   {(file.thumbnailUrl || (file.fileType.startsWith("image/") && file.filepath !== "external")) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img 
                       src={`/api/thumbnail/${file.id}`} 
                       alt="thumbnail" 
@@ -291,62 +309,69 @@ export default function UserFilesList({ isAdmin, categories, refreshSignal }: Pr
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-slate-800 text-sm truncate">{file.title}</p>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-0.5">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">{file.title}</p>
+                    {!file.isPublic && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800/60 flex items-center gap-1 text-[10px] shrink-0">
+                        <Lock className="w-2.5 h-2.5" /> Chưa chia sẻ
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                     <span
-                      className="px-1.5 py-0.5 rounded-full text-white font-medium"
+                      className="px-1.5 py-0.5 rounded-full text-white font-medium shadow-sm"
                       style={{ backgroundColor: file.category.color ?? "#3B82F6" }}
                     >
-                        {file.category.name}
+                      {file.category.name}
+                    </span>
+                    <span>{formatFileSize(file.fileSize)}</span>
+                    <span>{formatDate(file.createdAt)}</span>
+                    {isAdmin && (
+                      <span className="text-slate-400 dark:text-slate-500">
+                        {file.uploader.displayName ?? file.uploader.username}
                       </span>
-                      <span>{formatFileSize(file.fileSize)}</span>
-                      <span>{formatDate(file.createdAt)}</span>
-                      {isAdmin && (
-                        <span className="text-slate-300">
-                          {file.uploader.displayName ?? file.uploader.username}
-                        </span>
-                      )}
-                      {file.downloadCount > 0 && <span>{file.downloadCount} lượt tải</span>}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Link href={`/document/${file.id}`} className="p-1.5 rounded-lg hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition">
-                      <Eye className="w-4 h-4" />
-                    </Link>
-                    <a href={`/api/download/${file.id}`} download className="p-1.5 rounded-lg hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition">
-                      <Download className="w-4 h-4" />
-                    </a>
-                    <button onClick={() => setEditingFile(file)} className="p-1.5 rounded-lg hover:bg-amber-50 text-slate-400 hover:text-amber-600 transition">
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => deleteFile(file)} className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 transition">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    )}
+                    {file.downloadCount > 0 && <span>{file.downloadCount} lượt tải</span>}
                   </div>
                 </div>
+                <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Link href={`/document/${file.id}`} className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition" title="Xem">
+                    <Eye className="w-4 h-4" />
+                  </Link>
+                  <a href={`/api/download/${file.id}`} download className="p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition" title="Tải xuống">
+                    <Download className="w-4 h-4" />
+                  </a>
+                  <button onClick={() => setEditingFile(file)} className="p-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 transition" title="Chỉnh sửa">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => deleteFile(file)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition" title="Xóa">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
 
         {/* Pagination */}
         {Math.ceil(filteredFiles.length / itemsPerPage) > 1 && (
-          <div className="flex justify-center items-center gap-4 mt-6 py-4">
-            <button 
+          <div className="flex justify-center items-center gap-2 py-4 border-t border-slate-100 dark:border-slate-800">
+            <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(p => p - 1)}
-              className="px-3 py-1 text-sm border rounded hover:bg-slate-50 disabled:opacity-50"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 text-slate-600 dark:text-slate-300 transition"
             >
-              Trang trước
+              ‹ Trang trước
             </button>
-            <span className="text-sm text-slate-600">
-              Trang {currentPage} / {Math.ceil(filteredFiles.length / itemsPerPage)}
+            <span className="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-blue-50 dark:bg-blue-950/40 rounded-lg border border-blue-100 dark:border-blue-900/50">
+              {currentPage} / {Math.ceil(filteredFiles.length / itemsPerPage)}
             </span>
-            <button 
+            <button
               disabled={currentPage === Math.ceil(filteredFiles.length / itemsPerPage)}
               onClick={() => setCurrentPage(p => p + 1)}
-              className="px-3 py-1 text-sm border rounded hover:bg-slate-50 disabled:opacity-50"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 text-slate-600 dark:text-slate-300 transition"
             >
-              Trang sau
+              Trang sau ›
             </button>
           </div>
         )}
@@ -359,7 +384,7 @@ export default function UserFilesList({ isAdmin, categories, refreshSignal }: Pr
           onClose={() => setEditingFile(null)}
           onSuccess={() => {
             setEditingFile(null);
-            fetchFiles();
+            fetchFilesAndGroups();
           }}
         />
       )}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isDriveConfigured, getDriveClient, getDriveAccessToken } from "@/lib/gdrive";
 import fs from "fs";
 import path from "path";
 
@@ -18,17 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     
     if (!file) return new NextResponse("Not Found", { status: 404 });
 
-    // 1. If it is a Google Drive file, use the permanent thumbnail endpoint
-    // This is much faster, never expires, and works for videos and images.
-    if (file.driveFileId) {
-      const driveThumbUrl = `https://drive.google.com/thumbnail?id=${file.driveFileId}&sz=w800`;
-      const response = NextResponse.redirect(driveThumbUrl);
-      // Cache heavily as this URL acts as a permanent redirect to Google's CDN
-      response.headers.set("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=43200");
-      return response;
-    }
-
-    // 2. If it's a local image upload, stream it directly
+    // 1. If it's a local image upload, stream it directly
     if (file.filepath && !file.filepath.startsWith("gdrive://") && file.filepath !== "external") {
       if (file.fileType.startsWith("image/")) {
         const localPath = path.join(process.cwd(), "uploads", file.filepath);
@@ -44,14 +35,53 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       }
     }
 
-    // 3. Fallback to custom thumbnailUrl if exists and not googleusercontent (which expires)
+    // 2. If it is a Google Drive file, try authenticated fetch or redirect
+    if (file.driveFileId) {
+      // If server has Drive OAuth configured, fetch authenticated thumbnail
+      if (await isDriveConfigured()) {
+        try {
+          const token = await getDriveAccessToken();
+          const { drive } = await getDriveClient();
+          const meta = await drive.files.get({
+            fileId: file.driveFileId,
+            fields: "thumbnailLink, hasThumbnail"
+          });
+          
+          if (meta.data.thumbnailLink) {
+            const highResThumb = meta.data.thumbnailLink.replace(/=s\d+.*$/, "=s800");
+            const thumbRes = await fetch(highResThumb, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (thumbRes.ok) {
+              const buffer = Buffer.from(await thumbRes.arrayBuffer());
+              return new NextResponse(buffer, {
+                headers: {
+                  "Content-Type": thumbRes.headers.get("Content-Type") || "image/jpeg",
+                  "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=43200",
+                }
+              });
+            }
+          }
+        } catch (driveErr) {
+          // Fall back to direct Google CDN thumbnail URL
+        }
+      }
+
+      // Permanent Google Drive thumbnail CDN endpoint
+      const driveThumbUrl = `https://drive.google.com/thumbnail?id=${file.driveFileId}&sz=w800`;
+      const response = NextResponse.redirect(driveThumbUrl);
+      response.headers.set("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=43200");
+      return response;
+    }
+
+    // 3. Fallback to custom thumbnailUrl if exists and not googleusercontent
     if (file.thumbnailUrl && !file.thumbnailUrl.includes('googleusercontent.com')) {
       const response = NextResponse.redirect(file.thumbnailUrl);
       response.headers.set("Cache-Control", "public, max-age=86400");
       return response;
     }
 
-    // 4. If all else fails, use the default thumbnail from AppSettings
+    // 4. Default thumbnail from AppSettings
     const defaultThumbSetting = await prisma.appSetting.findUnique({ where: { key: "default_thumbnail_url" } });
     if (defaultThumbSetting?.value) {
       const fallbackUrl = new URL(defaultThumbSetting.value, req.url).toString();

@@ -63,7 +63,7 @@ export default function PopupAd() {
 
           {/* Panel */}
           <MotionDiv
-            className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800"
             initial={{ scale: 0.88, opacity: 0, y: 24 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.88, opacity: 0, y: 24 }}
@@ -72,7 +72,7 @@ export default function PopupAd() {
             {/* Nút đóng */}
             <button
               onClick={close}
-              className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-black/20 text-white hover:bg-black/40 transition"
+              className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/60 transition"
               aria-label="Đóng"
             >
               <X className="w-4 h-4" />
@@ -92,9 +92,9 @@ export default function PopupAd() {
             {/* Nội dung */}
             {(popup.title || popup.content || popup.linkUrl) && (
               <div className="p-5 space-y-3">
-                <h3 className="font-bold text-slate-800 text-lg leading-tight">{popup.title}</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg leading-tight">{popup.title}</h3>
                 {popup.content && (
-                  <p className="text-slate-600 text-sm leading-relaxed">{popup.content}</p>
+                  <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{popup.content}</p>
                 )}
                 <div className="flex items-center gap-3 pt-1">
                   {popup.linkUrl && (

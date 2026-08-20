@@ -48,11 +48,11 @@ export default function LoginPage() {
       <div className="w-full max-w-sm sm:max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-[#1D78B8] to-[#0d5485] shadow-lg mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-[#1D78B8] to-[#0d5485] dark:from-blue-600 dark:to-blue-900 shadow-lg shadow-blue-500/20 mb-4">
             <Lock className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">Đăng nhập hệ thống</h1>
-          <p className="text-slate-500 mt-1 text-sm">Ngân hàng Tài liệu Truyền thông CDC Đà Nẵng</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Đăng nhập hệ thống</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Ngân hàng Tài liệu Truyền thông CDC Đà Nẵng</p>
         </div>
 
         {/* Form */}
@@ -60,11 +60,11 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Username */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Tên đăng nhập
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input
                   type="text"
                   value={username}
@@ -80,11 +80,11 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Mật khẩu
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input
                   type={showPw ? "text" : "password"}
                   value={password}
@@ -98,7 +98,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
                 >
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -108,7 +108,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 py-3"
+              className="btn-primary w-full flex items-center justify-center gap-2 py-3 shadow-md"
             >
               {loading ? (
                 <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -120,7 +120,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-slate-400 mt-6">
+        <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">
           Liên hệ bộ phận IT để được cấp tài khoản
         </p>
       </div>

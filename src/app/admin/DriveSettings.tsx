@@ -105,13 +105,13 @@ export default function DriveSettings() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Cloud className="w-5 h-5 text-sky-600" />
-        <h3 className="font-bold text-slate-700">Cài đặt Google Drive</h3>
+        <Cloud className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+        <h3 className="font-bold text-slate-700 dark:text-slate-200">Cài đặt Google Drive</h3>
       </div>
 
-      <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 text-sm text-sky-700 space-y-1">
+      <div className="bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/50 rounded-2xl p-4 text-sm text-sky-700 dark:text-sky-300 space-y-1">
         <p className="font-semibold">Hướng dẫn:</p>
-        <ol className="list-decimal list-inside space-y-1 text-sky-600">
+        <ol className="list-decimal list-inside space-y-1 text-sky-600 dark:text-sky-400">
           <li>Tạo Google Cloud Project → bật Google Drive API</li>
           <li>Tạo OAuth 2.0 Client ID (Desktop App)</li>
           <li>Lấy Refresh Token bằng OAuth Playground</li>
@@ -119,17 +119,17 @@ export default function DriveSettings() {
         </ol>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-        <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2">1. Ảnh bìa mặc định</h4>
-        <p className="text-xs text-slate-500">Hình ảnh này sẽ được hiển thị khi một video hoặc tài liệu không tải được ảnh bìa.</p>
+      <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
+        <h4 className="font-bold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2">1. Ảnh bìa mặc định</h4>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Hình ảnh này sẽ được hiển thị khi một video hoặc tài liệu không tải được ảnh bìa.</p>
         
         <div className="flex items-start gap-6">
-          <div className="w-48 h-32 bg-slate-100 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center relative shrink-0">
+          <div className="w-48 h-32 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center relative shrink-0">
             {settings.default_thumbnail_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={settings.default_thumbnail_url} alt="Default Thumbnail" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-sm font-medium text-slate-400">Chưa có ảnh</span>
+              <span className="text-sm font-medium text-slate-400 dark:text-slate-500">Chưa có ảnh</span>
             )}
           </div>
           <div>
@@ -146,10 +146,10 @@ export default function DriveSettings() {
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-4 bg-white border border-slate-200 rounded-2xl p-5">
-        <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2">2. Cấu hình kết nối Google Drive</h4>
+      <form onSubmit={handleSave} className="space-y-4 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+        <h4 className="font-bold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2">2. Cấu hình kết nối Google Drive</h4>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">Client ID</label>
+          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Client ID</label>
           <input
             type="text" value={settings.gdrive_client_id}
             onChange={(e) => setSettings((s) => ({ ...s, gdrive_client_id: e.target.value }))}
@@ -159,7 +159,7 @@ export default function DriveSettings() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">Client Secret</label>
+          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Client Secret</label>
           <div className="relative">
             <input
               type={showSecret ? "text" : "password"} value={settings.gdrive_client_secret}
@@ -168,14 +168,14 @@ export default function DriveSettings() {
               className="input-base pr-10"
             />
             <button type="button" onClick={() => setShowSecret((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
               {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">Refresh Token</label>
+          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Refresh Token</label>
           <div className="relative">
             <input
               type={showToken ? "text" : "password"} value={settings.gdrive_refresh_token}
@@ -184,14 +184,14 @@ export default function DriveSettings() {
               className="input-base pr-10"
             />
             <button type="button" onClick={() => setShowToken((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
               {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">Folder ID (tùy chọn)</label>
+          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Folder ID (tùy chọn)</label>
           <input
             type="text" value={settings.gdrive_folder_id}
             onChange={(e) => setSettings((s) => ({ ...s, gdrive_folder_id: e.target.value }))}
@@ -200,9 +200,9 @@ export default function DriveSettings() {
           />
         </div>
 
-        <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-2 mt-6">3. Cấu hình Trí tuệ Nhân tạo (Google Gemini)</h4>
+        <h4 className="font-bold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2 mt-6">3. Cấu hình Trí tuệ Nhân tạo (Google Gemini)</h4>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">Gemini API Key</label>
+          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Gemini API Key</label>
           <div className="relative">
             <input
               type={showToken ? "text" : "password"} value={settings.gemini_api_key}
@@ -211,7 +211,7 @@ export default function DriveSettings() {
               className="input-base pr-10"
             />
           </div>
-          <p className="text-xs text-slate-500 mt-1">Dùng để tự động tạo mô tả tài liệu. Lấy key miễn phí tại <a href="https://aistudio.google.com" target="_blank" className="text-blue-500 hover:underline">Google AI Studio</a></p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Dùng để tự động tạo mô tả tài liệu. Lấy key miễn phí tại <a href="https://aistudio.google.com" target="_blank" className="text-blue-500 dark:text-blue-400 hover:underline">Google AI Studio</a></p>
         </div>
 
         <div className="flex gap-3 pt-4">
@@ -226,7 +226,7 @@ export default function DriveSettings() {
 
       {/* Test result */}
       {testResult && (
-        <div className={`rounded-2xl p-4 text-sm flex items-start gap-3 ${testResult.ok ? "bg-emerald-50 border border-emerald-200 text-emerald-700" : "bg-red-50 border border-red-200 text-red-700"}`}>
+        <div className={`rounded-2xl p-4 text-sm flex items-start gap-3 ${testResult.ok ? "bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300" : "bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300"}`}>
           {testResult.ok ? <Check className="w-5 h-5 shrink-0" /> : <X className="w-5 h-5 shrink-0" />}
           <div>
             {testResult.ok ? (

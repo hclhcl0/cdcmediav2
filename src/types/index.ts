@@ -12,6 +12,8 @@ export type FileWithRelations = {
   fileType: string;
   fileSize: number;
   downloadCount: number;
+  viewCount: number;
+  thumbnailUrl: string | null;
   isPublic: boolean;
   year: number | null;
   categoryId: string;
@@ -19,6 +21,7 @@ export type FileWithRelations = {
   uploaderId: string;
   uploader: { id: string; username: string; displayName: string | null };
   tags: { tag: { id: string; name: string } }[];
+  attachments?: { id: string; filename: string; fileType: string; fileSize: number }[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -33,23 +36,4 @@ export type CategoryWithCount = {
   icon: string | null;
   sortOrder: number;
   _count: { files: number };
-};
-
-export type UserPublic = {
-  id: string;
-  username: string;
-  displayName: string | null;
-  role: Role;
-  isActive: boolean;
-  createdAt: Date;
-  _count?: { files: number };
-};
-
-export type SiteStats = {
-  totalFiles: number;
-  totalCategories: number;
-  totalUsers: number;
-  totalStorageBytes: number;
-  totalDownloads: number;
-  storageMode: "local" | "drive";
 };

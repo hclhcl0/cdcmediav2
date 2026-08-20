@@ -44,22 +44,22 @@ export default function ChangePasswordCard() {
         className="w-full flex items-center justify-between gap-2 text-left"
       >
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-amber-50">
-            <KeyRound className="w-4 h-4 text-amber-600" />
+          <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/50">
+            <KeyRound className="w-4 h-4 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
-            <p className="font-semibold text-slate-800 text-sm">Đổi mật khẩu</p>
-            <p className="text-xs text-slate-400">Cập nhật mật khẩu đăng nhập của bạn</p>
+            <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Đổi mật khẩu</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Cập nhật mật khẩu đăng nhập của bạn</p>
           </div>
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+        {open ? <ChevronUp className="w-4 h-4 text-slate-400 dark:text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-400 dark:text-slate-500" />}
       </button>
 
       {open && (
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3 border-t border-slate-100 dark:border-slate-800 pt-4">
           {/* Current password */}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu hiện tại</label>
+            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Mật khẩu hiện tại</label>
             <div className="relative">
               <input
                 type={showCurrent ? "text" : "password"}
@@ -71,7 +71,7 @@ export default function ChangePasswordCard() {
                 required
               />
               <button type="button" onClick={() => setShowCurrent((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
                 {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -79,7 +79,7 @@ export default function ChangePasswordCard() {
 
           {/* New password */}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu mới</label>
+            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Mật khẩu mới</label>
             <div className="relative">
               <input
                 type={showNew ? "text" : "password"}
@@ -91,7 +91,7 @@ export default function ChangePasswordCard() {
                 required
               />
               <button type="button" onClick={() => setShowNew((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
                 {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -102,7 +102,7 @@ export default function ChangePasswordCard() {
                   <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${
                     newPw.length >= i * 3
                       ? i <= 1 ? "bg-red-400" : i === 2 ? "bg-amber-400" : i === 3 ? "bg-blue-400" : "bg-emerald-500"
-                      : "bg-slate-100"
+                      : "bg-slate-100 dark:bg-slate-800"
                   }`} />
                 ))}
               </div>
@@ -111,7 +111,7 @@ export default function ChangePasswordCard() {
 
           {/* Confirm password */}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Xác nhận mật khẩu mới</label>
+            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Xác nhận mật khẩu mới</label>
             <input
               type="password"
               value={confirmPw}
@@ -121,7 +121,7 @@ export default function ChangePasswordCard() {
               required
             />
             {confirmPw && newPw !== confirmPw && (
-              <p className="text-xs text-red-500 mt-1">Mật khẩu không khớp</p>
+              <p className="text-xs text-red-500 dark:text-red-400 mt-1">Mật khẩu không khớp</p>
             )}
           </div>
 

@@ -4,7 +4,6 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatFileSize } from "@/utils/format";
 import DashboardClient from "./DashboardClient";
-import ChangePasswordCard from "@/components/ChangePasswordCard";
 import { FileArchive, HardDrive, FolderOpen, TrendingUp } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +16,7 @@ export default async function DashboardPage() {
 
   const [categories, ownFiles, storageAgg] = await Promise.all([
     prisma.category.findMany({
-      select: { id: true, name: true, color: true, group: true },
+      select: { id: true, name: true, slug: true, description: true, color: true, icon: true, group: true, sortOrder: true, _count: { select: { files: true } } },
       orderBy: { name: "asc" },
     }),
     prisma.mediaFile.findMany({
@@ -34,43 +33,47 @@ export default async function DashboardPage() {
   const totalDownloads = ownFiles.reduce((s: number, f: any) => s + f.downloadCount, 0);
 
   const stats = [
-    { label: "Tài liệu", value: ownFiles.length, icon: FileArchive, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Dung lượng", value: formatFileSize(totalSize), icon: HardDrive, color: "text-indigo-600", bg: "bg-indigo-50" },
-    { label: "Chuyên mục", value: categories.length, icon: FolderOpen, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: "Lượt tải", value: totalDownloads, icon: TrendingUp, color: "text-violet-600", bg: "bg-violet-50" },
+    { label: "Tài liệu", value: ownFiles.length, icon: FileArchive, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/60", border: "border-blue-100 dark:border-blue-900/50" },
+    { label: "Dung lượng", value: formatFileSize(totalSize), icon: HardDrive, color: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50 dark:bg-indigo-950/60", border: "border-indigo-100 dark:border-indigo-900/50" },
+    { label: "Chuyên mục", value: categories.length, icon: FolderOpen, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/60", border: "border-emerald-100 dark:border-emerald-900/50" },
+    { label: "Lượt tải", value: totalDownloads, icon: TrendingUp, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-950/60", border: "border-violet-100 dark:border-violet-900/50" },
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">
-          Xin chào, <span className="gradient-text">{session.displayName ?? session.username}</span>
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">
-          {isAdmin ? "Quản lý toàn bộ tài liệu" : "Quản lý tài liệu của bạn"}
-        </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+      {/* Compact Hero Header */}
+      <div className="card !py-4 !px-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Left: greeting */}
+        <div>
+          <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">
+            Xin chào,{" "}
+            <span className="gradient-text">{session.displayName ?? session.username}</span>
+          </h1>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+            {isAdmin ? "Quản trị viên — Toàn quyền quản lý tài liệu" : "Quản lý tài liệu của bạn"}
+          </p>
+        </div>
+
+        {/* Right: stats mini row */}
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          {stats.map((s) => (
+            <div
+              key={s.label}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${s.bg} ${s.border}`}
+            >
+              <div className="p-1.5 rounded-lg bg-white/60 dark:bg-black/20">
+                <s.icon className={`w-3.5 h-3.5 ${s.color}`} />
+              </div>
+              <div>
+                <p className={`text-sm font-bold leading-none ${s.color}`}>{s.value}</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 leading-none">{s.label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {stats.map((s) => (
-          <div key={s.label} className={`card flex items-center gap-3 py-4`}>
-            <div className={`p-2.5 rounded-2xl ${s.bg}`}>
-              <s.icon className={`w-5 h-5 ${s.color}`} />
-            </div>
-            <div>
-              <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-slate-500">{s.label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Change password */}
-      <ChangePasswordCard />
-
-      {/* Main */}
+      {/* Main Dashboard Client (tabs: upload / files / settings) */}
       <DashboardClient
         categories={categories}
         isAdmin={isAdmin}
@@ -78,3 +81,4 @@ export default async function DashboardPage() {
     </div>
   );
 }
+

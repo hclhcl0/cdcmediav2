@@ -1,7 +1,6 @@
-// src/app/page.tsx — public home
 import { prisma } from "@/lib/prisma";
 import PublicFileList from "@/components/PublicFileList";
-import SidebarAds from "@/components/SidebarAds";
+import TopDownloadedFiles from "@/components/TopDownloadedFiles";
 import BannerStrip from "@/components/BannerStrip";
 import { isDriveConfigured } from "@/lib/gdrive";
 import { formatFileSize } from "@/utils/format";
@@ -10,25 +9,31 @@ import { FileArchive, FolderOpen, Download, HardDrive, Shield } from "lucide-rea
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [categories, files, storageAgg, downloadAgg, useDrive, appGroupsSetting] = await Promise.all([
+  const [categories, files, storageAgg, downloadAgg, useDrive, appGroupsSetting, topDownloadedFiles] = await Promise.all([
     prisma.category.findMany({
-      include: { _count: { select: { files: { where: { isPublic: true } } } } },
+      include: { _count: { select: { files: true } } },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     }),
     prisma.mediaFile.findMany({
-      where: { isPublic: true },
       include: {
         category: { select: { id: true, name: true, color: true, icon: true, group: true } },
         uploader: { select: { id: true, username: true, displayName: true } },
         tags: { include: { tag: { select: { id: true, name: true } } } },
       },
       orderBy: { createdAt: "desc" },
-      take: 200,
     }),
-    prisma.mediaFile.aggregate({ _sum: { fileSize: true }, where: { isPublic: true } }),
-    prisma.mediaFile.aggregate({ _sum: { downloadCount: true }, where: { isPublic: true } }),
+    prisma.mediaFile.aggregate({ _sum: { fileSize: true } }),
+    prisma.mediaFile.aggregate({ _sum: { downloadCount: true } }),
     isDriveConfigured(),
     prisma.appSetting.findUnique({ where: { key: "APP_GROUPS" } }),
+    prisma.mediaFile.findMany({
+      where: { isPublic: true },
+      orderBy: { downloadCount: "desc" },
+      take: 6,
+      include: {
+        category: { select: { id: true, name: true, color: true, icon: true } },
+      },
+    }),
   ]);
 
   const groups = appGroupsSetting ? JSON.parse(appGroupsSetting.value) : [
@@ -42,62 +47,83 @@ export default async function HomePage() {
   const totalDownloads = downloadAgg._sum.downloadCount ?? 0;
 
   const stats = [
-    { label: "Tài liệu", value: files.length, icon: FileArchive, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
-    { label: "Chuyên mục", value: categories.length, icon: FolderOpen, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100" },
-    { label: "Lượt tải", value: totalDownloads.toLocaleString("vi-VN"), icon: Download, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+    {
+      label: "Tài liệu",
+      value: files.length,
+      icon: FileArchive,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-950/40",
+      border: "border-blue-100 dark:border-blue-900/50",
+      iconBg: "bg-white dark:bg-slate-900",
+    },
+    {
+      label: "Chuyên mục",
+      value: categories.length,
+      icon: FolderOpen,
+      color: "text-indigo-600 dark:text-indigo-400",
+      bg: "bg-indigo-50 dark:bg-indigo-950/40",
+      border: "border-indigo-100 dark:border-indigo-900/50",
+      iconBg: "bg-white dark:bg-slate-900",
+    },
+    {
+      label: "Lượt tải",
+      value: totalDownloads.toLocaleString("vi-VN"),
+      icon: Download,
+      color: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-50 dark:bg-emerald-950/40",
+      border: "border-emerald-100 dark:border-emerald-900/50",
+      iconBg: "bg-white dark:bg-slate-900",
+    },
     {
       label: "Dung lượng",
       value: formatFileSize(totalSize),
       icon: HardDrive,
-      color: useDrive ? "text-violet-600" : "text-slate-600",
-      bg: useDrive ? "bg-violet-50" : "bg-slate-50",
-      border: useDrive ? "border-violet-100" : "border-slate-100",
+      color: useDrive ? "text-violet-600 dark:text-violet-400" : "text-slate-600 dark:text-slate-400",
+      bg: useDrive ? "bg-violet-50 dark:bg-violet-950/40" : "bg-slate-50 dark:bg-slate-800/40",
+      border: useDrive ? "border-violet-100 dark:border-violet-900/50" : "border-slate-100 dark:border-slate-800",
+      iconBg: "bg-white dark:bg-slate-900",
     },
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-6">
-      {/* Banner TOP đã chuyển sang layout.tsx để full màn hình */}
-
-      {/* Hero — the subject is a government health media archive: authoritative, trusted, accessible */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-xl">
-        {/* Background gradient blobs */}
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 space-y-4 transition-colors duration-300">
+      {/* Ultra-compact Sleek Hero & Stats Bar */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-800/80 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl shadow-xs transition-colors duration-300">
+        {/* Subtle background glow */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full bg-[#1D78B8]/10 blur-3xl" />
-          <div className="absolute -bottom-16 -right-16 w-64 h-64 rounded-full bg-[#F26A21]/10 blur-3xl" />
+          <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-[#1D78B8]/10 dark:bg-[#38bdf8]/10 blur-2xl" />
+          <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-[#F26A21]/10 dark:bg-[#fb923c]/10 blur-2xl" />
         </div>
-        {/* Grid overlay */}
-        <div className="absolute inset-0 bg-grid opacity-50 pointer-events-none" />
 
-        <div className="relative px-5 py-6 sm:px-8 sm:py-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-10">
-          {/* Headline & Info */}
-          <div className="flex-1 w-full text-left">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 mb-4 rounded-full bg-slate-100/80 border border-slate-200/80 text-slate-600 text-[11px] font-bold uppercase tracking-widest backdrop-blur-md">
-              <Shield className="w-3.5 h-3.5 text-[#1D78B8]" />
-              Trung tâm Kiểm soát Bệnh tật TP. Đà Nẵng
-            </div>
-            
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-800 tracking-tight leading-[1.15] mb-3">
-              Ngân hàng Tài liệu <br className="hidden sm:block" /><span className="text-[#1D78B8] inline-block mt-1">Truyền thông</span>
+        <div className="relative px-4 py-3.5 sm:px-6 sm:py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
+          {/* Headline & Brief info */}
+          <div className="min-w-0 text-left">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-tight flex items-center gap-2">
+              <span>Ngân hàng Tài liệu</span>
+              <span className="text-[#1D78B8] dark:text-[#38bdf8]">Truyền thông</span>
             </h1>
-            <p className="text-slate-500 text-sm sm:text-base max-w-xl leading-relaxed">
-              Kho lưu trữ tập trung tài liệu truyền thông, hình ảnh, video và ấn phẩm phòng chống dịch bệnh của CDC Đà Nẵng.
+            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+              Kho lưu trữ tập trung tài liệu, hình ảnh, video và ấn phẩm phòng chống dịch bệnh CDC Đà Nẵng.
             </p>
           </div>
 
-          {/* Stats grid */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-end gap-3 shrink-0 w-full lg:w-auto mt-2 lg:mt-0">
+          {/* Centered & Larger Numbers Stats Badges */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
             {stats.map((s) => (
               <div
                 key={s.label}
-                className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 px-4 py-3 rounded-2xl ${s.bg} border ${s.border} backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto`}
+                className={`flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl ${s.bg} border ${s.border} backdrop-blur-md shadow-2xs hover:shadow-xs transition-all`}
               >
-                <div className={`p-2.5 rounded-xl bg-white shadow-sm shrink-0`}>
+                <div className="p-1.5 sm:p-2 rounded-lg bg-white/80 dark:bg-black/25 shadow-2xs shrink-0 border border-black/5 dark:border-white/10">
                   <s.icon className={`w-4 h-4 ${s.color}`} />
                 </div>
-                <div className="text-left flex-1 mt-1 sm:mt-0">
-                  <p className={`text-lg sm:text-base font-black ${s.color} leading-none tabular-nums`}>{s.value}</p>
-                  <p className="text-[10px] text-slate-500 leading-none mt-1.5 font-bold uppercase tracking-wider">{s.label}</p>
+                <div className="flex flex-col items-center justify-center text-center min-w-[54px]">
+                  <span className={`text-lg sm:text-xl font-black ${s.color} tabular-nums leading-tight tracking-tight`}>
+                    {s.value}
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider leading-none mt-0.5 text-center">
+                    {s.label}
+                  </span>
                 </div>
               </div>
             ))}
@@ -108,13 +134,15 @@ export default async function HomePage() {
       {/* Banner MIDDLE — giữa trang, sau hero */}
       <BannerStrip position="MIDDLE" className="rounded-2xl overflow-hidden shadow-sm" />
 
-      {/* File list + Sidebar */}
-      <div className="flex gap-4 xl:gap-6">
-        <div className="flex-1 min-w-0 bg-white shadow-xl shadow-slate-200/50 rounded-2xl p-4 sm:p-6 border border-slate-200/80 relative z-10">
-          <PublicFileList files={files as never} categories={categories as never} groups={groups} />
-        </div>
-        <SidebarAds />
+      {/* File list */}
+      <div className="w-full bg-white dark:bg-slate-900/90 shadow-xl shadow-slate-200/50 dark:shadow-black/40 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 relative z-10 transition-colors duration-300">
+        <PublicFileList files={files as never} categories={categories as never} groups={groups} />
       </div>
+
+      {/* Top tài liệu được tải nhiều nhất */}
+      {topDownloadedFiles.length > 0 && (
+        <TopDownloadedFiles files={topDownloadedFiles as never} />
+      )}
     </div>
   );
 }

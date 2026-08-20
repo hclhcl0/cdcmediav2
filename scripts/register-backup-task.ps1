@@ -2,7 +2,7 @@
 # Chay voi quyen Administrator
 
 $TaskName   = "CDCMedia_BackupDB"
-$ScriptPath = "C:\cdcmedia\scripts\backup-db.ps1"
+$ScriptPath = (Resolve-Path "$PSScriptRoot\backup-db.ps1").Path
 $LogPath    = "C:\cdcmedia-backups\task-output.log"
 
 # Xoa task cu neu ton tai

@@ -9,6 +9,7 @@ type Ad = {
   title: string;
   imageUrl: string;
   linkUrl: string | null;
+  position?: string;
 };
 
 export default function SidebarAds() {
@@ -28,7 +29,7 @@ export default function SidebarAds() {
   const rightAds = ads.filter(a => a.position === "RIGHT");
 
   const renderAdCard = (ad: Ad) => (
-    <div key={ad.id} className="relative group rounded-2xl overflow-hidden shadow-md border border-slate-200/80 bg-white p-1">
+    <div key={ad.id} className="relative group rounded-2xl overflow-hidden shadow-md border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 transition-colors duration-300">
       {ad.linkUrl ? (
         <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer" title={ad.title} className="block w-full h-full">
           <Image

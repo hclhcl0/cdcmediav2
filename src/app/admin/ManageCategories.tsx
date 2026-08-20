@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, X, Check, FolderOpen } from "lucide-react";
 import toast from "react-hot-toast";
-import { slugify } from "@/utils/format";
 
 interface Category {
   id: string; name: string; slug: string; description: string | null;
@@ -88,7 +87,7 @@ export default function ManageCategories() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-slate-700">Quản lý chuyên mục</h3>
+        <h3 className="font-bold text-slate-700 dark:text-slate-200">Quản lý chuyên mục</h3>
         <button onClick={openCreate} className="btn-primary flex items-center gap-1.5 text-sm py-2">
           <Plus className="w-4 h-4" /> Thêm chuyên mục
         </button>
@@ -96,8 +95,8 @@ export default function ManageCategories() {
 
       {/* Form */}
       {showForm && (
-        <div className="border border-blue-200 bg-blue-50/40 rounded-2xl p-4 space-y-3">
-          <h4 className="font-semibold text-slate-700 text-sm">{editId ? "Sửa chuyên mục" : "Tạo chuyên mục mới"}</h4>
+        <div className="border border-blue-200 dark:border-blue-900/50 bg-blue-50/40 dark:bg-blue-950/30 rounded-2xl p-4 space-y-3">
+          <h4 className="font-semibold text-slate-700 dark:text-slate-200 text-sm">{editId ? "Sửa chuyên mục" : "Tạo chuyên mục mới"}</h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tên chuyên mục *" className="input-base text-sm" />
             <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Mô tả" className="input-base text-sm" />
@@ -109,18 +108,18 @@ export default function ManageCategories() {
           </div>
           <div className="flex items-center gap-3">
             <div>
-              <p className="text-xs font-semibold text-slate-600 mb-1.5">Màu sắc</p>
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Màu sắc</p>
               <div className="flex flex-wrap gap-1.5">
                 {COLORS.map((c) => (
                   <button key={c} type="button" onClick={() => setColor(c)}
                     className="w-6 h-6 rounded-full border-2 transition-all"
-                    style={{ backgroundColor: c, borderColor: color === c ? "#1e293b" : "transparent" }}
+                    style={{ backgroundColor: c, borderColor: color === c ? (document.documentElement.classList.contains('dark') ? "#ffffff" : "#1e293b") : "transparent" }}
                   />
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-600 mb-1.5">Thứ tự</p>
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Thứ tự</p>
               <input type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}
                 className="input-base text-sm w-20" min="0" />
             </div>
@@ -138,34 +137,34 @@ export default function ManageCategories() {
 
       {/* List */}
       {loading ? (
-        <div className="text-center py-12 text-slate-400">Đang tải…</div>
+        <div className="text-center py-12 text-slate-400 dark:text-slate-500">Đang tải…</div>
       ) : categories.length === 0 ? (
-        <div className="text-center py-12 text-slate-400">
+        <div className="text-center py-12 text-slate-400 dark:text-slate-500">
           <FolderOpen className="w-10 h-10 mx-auto mb-2 opacity-30" />
           <p>Chưa có chuyên mục nào</p>
         </div>
       ) : (
         <div className="space-y-2">
           {categories.map((cat) => (
-            <div key={cat.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/60 border border-slate-100 hover:border-slate-200 transition">
-              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color ?? "#3B82F6" }} />
+            <div key={cat.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition">
+              <div className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: cat.color ?? "#3B82F6" }} />
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-800 text-sm">
+                <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
                   {cat.name} 
                   {cat.group && (
-                    <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">
+                    <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold border border-slate-200/50 dark:border-slate-700/50">
                       {groups.find(g => g.id === cat.group)?.name || cat.group}
                     </span>
                   )}
                 </p>
-                {cat.description && <p className="text-xs text-slate-400 truncate">{cat.description}</p>}
+                {cat.description && <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{cat.description}</p>}
               </div>
-              <span className="text-xs text-slate-400 shrink-0">{cat._count.files} file</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{cat._count.files} file</span>
               <div className="flex gap-1 shrink-0">
-                <button onClick={() => openEdit(cat)} className="p-1.5 rounded-lg hover:bg-amber-50 text-slate-400 hover:text-amber-600 transition">
+                <button onClick={() => openEdit(cat)} className="p-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/30 text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 transition">
                   <Pencil className="w-4 h-4" />
                 </button>
-                <button onClick={() => handleDelete(cat)} className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 transition">
+                <button onClick={() => handleDelete(cat)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

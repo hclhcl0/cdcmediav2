@@ -1,12 +1,11 @@
 // src/components/PublicFileList.tsx
 "use client";
-import { useState, useCallback, useMemo } from "react";
-import { Search, Filter, Download, Eye, SlidersHorizontal, Tag, X, Film, Mic, Image as ImageIcon, FileText } from "lucide-react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { Search, Download, Eye, X, Image as ImageIcon, Headphones, FileText, Layers, FileSpreadsheet, Presentation, FileEdit, Video, LayoutGrid, Lock, Hash, ChevronDown, ChevronUp } from "lucide-react";
 import * as Icons from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import { FileIcon, getFileCategoryLabel } from "@/utils/fileIcon";
+import { FileIcon, getFileCategory } from "@/utils/fileIcon";
 import { formatFileSize, formatDate } from "@/utils/format";
 import type { CategoryWithCount, FileWithRelations } from "@/types";
 import { clsx } from "clsx";
@@ -23,15 +22,40 @@ interface Props {
   groups: Group[];
 }
 
+// ── Filter Toolbar Configuration ─────────────────────────────────────────────
 const FILE_TYPE_FILTERS = [
-  { value: "", label: "Tất cả loại" },
-  { value: "image", label: "Hình ảnh" },
-  { value: "video", label: "Video" },
-  { value: "application/pdf", label: "PDF" },
-  { value: "word", label: "Word" },
-  { value: "sheet", label: "Excel" },
-  { value: "presentation", label: "PowerPoint" },
+  { value: "", label: "Tất cả", icon: LayoutGrid },
+  { value: "video", label: "Video", icon: Video },
+  { value: "image", label: "Hình ảnh", icon: ImageIcon },
+  { value: "application/pdf", label: "PDF", icon: FileText },
+  { value: "word", label: "Word", icon: FileEdit },
+  { value: "audio", label: "Âm thanh", icon: Headphones },
+  { value: "sheet", label: "Excel", icon: FileSpreadsheet },
+  { value: "presentation", label: "PowerPoint", icon: Presentation },
 ];
+
+// Helper to get vector hero icon & stick style for card thumbnail (Icon-only)
+export function getFileHeroIconInfo(mimeType: string, filename?: string) {
+  const cat = getFileCategory(mimeType, filename);
+  switch (cat) {
+    case "video":
+      return { label: "Video", icon: Video, bg: "bg-purple-600/90 text-white border-purple-400/40 shadow-purple-500/20" };
+    case "image":
+      return { label: "Hình ảnh", icon: ImageIcon, bg: "bg-emerald-600/90 text-white border-emerald-400/40 shadow-emerald-500/20" };
+    case "pdf":
+      return { label: "PDF", icon: FileText, bg: "bg-rose-600/90 text-white border-rose-400/40 shadow-rose-500/20" };
+    case "word":
+      return { label: "Word", icon: FileEdit, bg: "bg-blue-600/90 text-white border-blue-400/40 shadow-blue-500/20" };
+    case "audio":
+      return { label: "Âm thanh", icon: Headphones, bg: "bg-pink-600/90 text-white border-pink-400/40 shadow-pink-500/20" };
+    case "excel":
+      return { label: "Excel", icon: FileSpreadsheet, bg: "bg-green-600/90 text-white border-green-400/40 shadow-green-500/20" };
+    case "powerpoint":
+      return { label: "PowerPoint", icon: Presentation, bg: "bg-orange-600/90 text-white border-orange-400/40 shadow-orange-500/20" };
+    default:
+      return { label: "Tài liệu", icon: FileText, bg: "bg-slate-600/90 text-white border-slate-400/40 shadow-slate-500/20" };
+  }
+}
 
 const getCategoryGroup = (catName: string, availableGroups: Group[]) => {
   if (!catName || !availableGroups || availableGroups.length === 0) return null;
@@ -41,7 +65,6 @@ const getCategoryGroup = (catName: string, availableGroups: Group[]) => {
   if ((lower.includes("audio") || lower.includes("âm thanh") || lower.includes("mp3")) && availableGroups.some(g => g.id === "AUDIO")) return "AUDIO";
   if ((lower.includes("hình ảnh") || lower.includes("ảnh") || lower.includes("banner") || lower.includes("poster") || lower.includes("infographic")) && availableGroups.some(g => g.id === "GRAPHICS")) return "GRAPHICS";
   
-  // Mặc định trả về phân hệ cuối cùng (thường là Tài liệu) hoặc phân hệ đầu tiên
   const docGroup = availableGroups.find(g => g.id === "DOCUMENTS");
   return docGroup ? docGroup.id : availableGroups[availableGroups.length - 1].id;
 };
@@ -69,6 +92,238 @@ const isDepartmentTag = (tagName: string) => {
   return depts.includes(tagName.toLowerCase().trim());
 };
 
+// ── Apple TV Style Media Card Component ──────────────────────────────────────
+function AppleTVCard({ file, onTagClick }: { file: FileWithRelations; onTagClick?: (tagName: string) => void }) {
+  const [imgError, setImgError] = useState(false);
+  const isNew = Date.now() - new Date(file.createdAt).getTime() < 24 * 60 * 60 * 1000;
+  const isVideo = file.fileType.startsWith("video/") || (file.filename && /\.(mp4|mov|avi|webm|mkv)$/i.test(file.filename));
+  const isAudio = file.fileType.startsWith("audio/");
+  const isAlbum = file.attachments && file.attachments.length > 0;
+  const heroIconInfo = getFileHeroIconInfo(file.fileType, file.filename);
+  const HeroIcon = heroIconInfo.icon;
+
+  // Thumbnail URL calculation
+  const hasValidThumb = !imgError && (Boolean(file.thumbnailUrl) || Boolean(file.driveFileId) || (file.fileType.startsWith("image/") && file.filepath !== "external"));
+  const thumbSrc = `/api/thumbnail/${file.id}`;
+
+  const cleanTags = file.tags ? file.tags.filter((t: any) => !isDepartmentTag(t.tag.name)) : [];
+
+  return (
+    <div className="group relative flex flex-col rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-xl dark:hover:shadow-cyan-500/10 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300 hover:-translate-y-1 overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
+      {/* 16:9 Apple TV Cinematic Poster */}
+      <Link href={`/document/${file.id}`} className="relative aspect-[16/9] w-full overflow-hidden bg-slate-950 block">
+        {hasValidThumb && !isAudio ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thumbSrc}
+            alt={file.title}
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+            onError={() => setImgError(true)}
+          />
+        ) : (!file.isPublic || imgError) ? (
+          /* Unshared / Private / Login-Required Document Fallback Poster (Adaptive Light & Dark Mode) */
+          <div className="w-full h-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100/90 dark:from-slate-950 dark:via-amber-950/40 dark:to-slate-900 transition-colors duration-300">
+            <div className="absolute -top-12 -left-12 w-36 h-36 rounded-full bg-amber-400/30 dark:bg-amber-500/15 blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-orange-400/25 dark:bg-amber-600/15 blur-2xl pointer-events-none" />
+            <div className="relative z-10 p-3.5 rounded-2xl bg-white/85 dark:bg-amber-500/10 backdrop-blur-md border border-amber-300/80 dark:border-amber-500/30 shadow-xl group-hover:scale-110 transition-all duration-300 flex items-center justify-center">
+              <Lock className="w-7 h-7 text-amber-600 dark:text-amber-400 drop-shadow-md" />
+            </div>
+          </div>
+        ) : isAudio ? (
+          /* Audio Soundwave Equalizer Poster (Adaptive Light & Dark Mode) */
+          <div className="w-full h-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-purple-100 via-rose-50 to-indigo-100 dark:from-slate-950 dark:via-purple-950/80 dark:to-slate-900 transition-colors duration-300">
+            <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-rose-400/30 dark:bg-pink-500/20 blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-purple-400/30 dark:bg-purple-500/20 blur-2xl pointer-events-none" />
+            
+            {/* Center Headphones Icon */}
+            <div className="relative z-10 p-2.5 rounded-2xl bg-white/85 dark:bg-white/10 backdrop-blur-md border border-purple-200/80 dark:border-white/20 shadow-xl mb-3 group-hover:scale-110 transition-all duration-300">
+              <Headphones className="w-6 h-6 text-purple-600 dark:text-pink-400 drop-shadow-md" />
+            </div>
+
+            {/* Dynamic Soundwave Visualizer Bars */}
+            <div className="relative z-10 flex items-center justify-center gap-1.5 h-7 px-4">
+              {[35, 70, 95, 55, 85, 45, 90, 100, 65, 80, 50, 75, 40].map((height, i) => (
+                <span
+                  key={i}
+                  className="w-1 rounded-full bg-gradient-to-t from-purple-600 via-pink-500 to-rose-400 dark:from-pink-500 dark:via-rose-400 dark:to-purple-400 shadow-sm"
+                  style={{
+                    height: `${height}%`,
+                    opacity: 0.9,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* Clean Minimalist Fallback Poster (Adaptive Light & Dark Mode) */
+          <div className="w-full h-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100/90 dark:from-slate-900 dark:via-slate-850 dark:to-blue-950 transition-colors duration-300">
+            <div className="absolute -top-12 -left-12 w-36 h-36 rounded-full bg-blue-400/20 dark:bg-blue-500/20 blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-indigo-400/20 dark:bg-indigo-500/20 blur-2xl pointer-events-none" />
+            
+            {/* Center File Hero Icon */}
+            <div className="relative z-10 p-3.5 rounded-2xl bg-white/85 dark:bg-white/5 backdrop-blur-md border border-slate-200/80 dark:border-white/20 shadow-xl group-hover:scale-110 group-hover:border-white/40 transition-all duration-300 flex items-center justify-center">
+              <HeroIcon className="w-7 h-7 text-slate-700 dark:text-white drop-shadow-md" />
+            </div>
+          </div>
+        )}
+
+        {/* Ambient Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+        {/* Floating Stick Category Badge (Top-Left, Arrow pointing to the right >, flush to top-left) */}
+        <div className="absolute top-0 left-0 z-10">
+          <span
+            className={clsx(
+              "backdrop-blur-md bg-black/60 text-white/95 border-r border-b border-white/20 pl-2.5 pr-3.5 py-1 text-[9px] font-bold tracking-wide uppercase shadow-md inline-flex items-center gap-1.5 select-none",
+              "[clip-path:polygon(0%_0%,calc(100%-8px)_0%,100%_50%,calc(100%-8px)_100%,0%_100%)]"
+            )}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full shrink-0 shadow-sm"
+              style={{ backgroundColor: file.category.color ?? "#38bdf8" }}
+            />
+            <span className="truncate max-w-[120px]">{file.category.name}</span>
+          </span>
+        </div>
+
+        {/* Floating Stick Badges & Tags (Top-Right / Right side of thumbnail) */}
+        <div className="absolute top-2.5 right-2.5 z-10 flex flex-col items-end gap-1 max-w-[55%] pointer-events-auto">
+          <div className="flex items-center gap-1">
+            {(!file.isPublic || imgError) && (
+              <span
+                className="w-7 h-7 rounded-full backdrop-blur-md bg-amber-500/90 text-white border border-amber-300/40 shadow-md shadow-amber-500/20 flex items-center justify-center transition-transform group-hover:scale-110 shrink-0"
+                title="Tài liệu chưa được chia sẻ"
+                aria-label="Chưa chia sẻ"
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-100" />
+              </span>
+            )}
+            {isNew && (
+              <span className="backdrop-blur-md bg-rose-600/90 text-white border border-rose-400/40 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-lg animate-pulse tracking-wider">
+                NEW
+              </span>
+            )}
+            {isAlbum && (
+              <span className="backdrop-blur-md bg-purple-600/80 text-white border border-purple-400/30 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
+                <Layers className="w-2.5 h-2.5" /> Album
+              </span>
+            )}
+            {/* Stick-style Hero Icon-Only Format Badge on Thumbnail */}
+            <span
+              className={clsx("w-7 h-7 rounded-full backdrop-blur-md shadow-md border flex items-center justify-center transition-transform group-hover:scale-110", heroIconInfo.bg)}
+              title={heroIconInfo.label}
+              aria-label={heroIconInfo.label}
+            >
+              <HeroIcon className="w-3.5 h-3.5" />
+            </span>
+          </div>
+
+          {/* Colorless Translucent Frosted Glass Sticky Arrow Tabs (Pointing inward, square edge flush to thumb edge) */}
+          {cleanTags.length > 0 && (
+            <div className="flex flex-col items-end gap-1 mt-1 -mr-2.5">
+              {cleanTags.slice(0, 3).map((t: any) => (
+                <button
+                  key={t.tag.id}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onTagClick?.(t.tag.name.toLowerCase());
+                  }}
+                  className={clsx(
+                    "backdrop-blur-md bg-black/55 hover:bg-black/85 text-white/90 hover:text-white border-l border-white/20 text-[9px] font-semibold pl-3.5 pr-2 py-0.5 shadow-md transition-all hover:-translate-x-1 truncate max-w-[130px] select-none text-right",
+                    "[clip-path:polygon(8px_0%,100%_0%,100%_100%,8px_100%,0%_50%)]"
+                  )}
+                  title={`Lọc theo thẻ: ${t.tag.name}`}
+                >
+                  #{t.tag.name}
+                </button>
+              ))}
+              {cleanTags.length > 3 && (
+                <span
+                  className="backdrop-blur-md bg-black/45 text-white/80 text-[8px] font-bold pl-3 pr-1.5 py-0.5 shadow-sm [clip-path:polygon(6px_0%,100%_0%,100%_100%,6px_100%,0%_50%)]"
+                >
+                  +{cleanTags.length - 3}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Floating Stats Inside Thumbnail */}
+        <div className="absolute bottom-2 left-0 right-2.5 z-10 flex items-center justify-between pointer-events-none">
+          {/* Stick Date Bookmark (Arrow pointing right, flat edge flush to left edge) */}
+          <span
+            className={clsx(
+              "backdrop-blur-md bg-black/55 text-white/90 border-r border-white/20 text-[9px] font-semibold pl-2.5 pr-3.5 py-0.5 shadow-md truncate max-w-[130px] select-none text-left",
+              "[clip-path:polygon(0%_0%,calc(100%-8px)_0%,100%_50%,calc(100%-8px)_100%,0%_100%)]"
+            )}
+          >
+            {file.year ? `Năm ${file.year}` : formatDate(file.createdAt)}
+          </span>
+          <span className="backdrop-blur-md bg-black/60 text-white/90 text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/10 shadow-sm">
+            {formatFileSize(file.fileSize)}
+          </span>
+        </div>
+      </Link>
+
+      {/* Card Info Content (Apple TV clean & compact) */}
+      <div className="p-3 sm:p-3.5 flex-1 flex flex-col justify-between space-y-2">
+        <div>
+          {/* Title */}
+          <Link href={`/document/${file.id}`} className="block">
+            <h3
+              className="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-[15px] leading-snug line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors"
+              title={file.title}
+            >
+              {file.title}
+            </h3>
+          </Link>
+
+          {/* Description (Compact 2 lines) */}
+          {file.description && (
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed" title={file.description}>
+              {file.description}
+            </p>
+          )}
+        </div>
+
+        {/* Compact Bottom Bar: Stats on Left + Small Action Buttons on Right */}
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+          {/* Left stats */}
+          <div className="flex items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+            {file.viewCount > 0 && (
+              <span className="flex items-center gap-0.5" title={`${file.viewCount} lượt xem`}>
+                <Eye className="w-3 h-3 text-slate-400 dark:text-slate-500" /> {file.viewCount}
+              </span>
+            )}
+            {file.downloadCount > 0 && (
+              <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold" title={`${file.downloadCount} lượt tải`}>
+                <Download className="w-3 h-3" /> {file.downloadCount}
+              </span>
+            )}
+            {file.viewCount === 0 && file.downloadCount === 0 && (
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">Mới cập nhật</span>
+            )}
+          </div>
+
+          {/* Right compact icon-only download button */}
+          <a
+            href={`/api/download/${file.id}`}
+            download
+            className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 hover:bg-[#1D78B8] hover:text-white dark:bg-slate-800 dark:hover:bg-sky-600 text-slate-600 dark:text-slate-300 transition-all shadow-sm hover:shadow-md active:scale-90 shrink-0 border border-slate-200/70 dark:border-slate-700/70 group/dl"
+            title="Tải xuống tài liệu"
+            aria-label="Tải xuống"
+          >
+            <Download className="w-3.5 h-3.5 transition-transform group-hover/dl:translate-y-0.5" />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PublicFileList({ files, categories, groups }: Props) {
   const [selectedGroup, setSelectedGroup] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -79,7 +334,7 @@ export default function PublicFileList({ files, categories, groups }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
-  // Collect all tags from files (case-insensitive, sorted by frequency), excluding department tags
+  // Collect all tags from files
   const allTags = useMemo(() => {
     const counts = new Map<string, number>();
     const originalNames = new Map<string, string>();
@@ -100,7 +355,7 @@ export default function PublicFileList({ files, categories, groups }: Props) {
     });
 
     return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1]) // sort by count descending
+      .sort((a, b) => b[1] - a[1])
       .map(([lowerName, count]) => ({
         id: lowerName,
         name: originalNames.get(lowerName) || lowerName,
@@ -110,23 +365,7 @@ export default function PublicFileList({ files, categories, groups }: Props) {
   }, [files]);
 
   const sortedFiles = useMemo(() => {
-    const now = Date.now();
-    const newFiles: typeof files = [];
-    const oldFiles: typeof files = [];
-    files.forEach(f => {
-      if (now - new Date(f.createdAt).getTime() < 24 * 60 * 60 * 1000) {
-        newFiles.push(f);
-      } else {
-        oldFiles.push(f);
-      }
-    });
-    for (let i = oldFiles.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [oldFiles[i], oldFiles[j]] = [oldFiles[j], oldFiles[i]];
-    }
-    newFiles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
-    return [...newFiles, ...oldFiles];
+    return [...files].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [files]);
 
   const filtered = useMemo(() => {
@@ -164,16 +403,15 @@ export default function PublicFileList({ files, categories, groups }: Props) {
     setCurrentPage(1);
   }, []);
 
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [selectedGroup, selectedCategory, typeFilter, selectedTag, query]);
 
-  useMemo(() => {
+  useEffect(() => {
     setSelectedCategory("");
   }, [selectedGroup]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
-
   const hasActiveFilters = selectedGroup || selectedCategory || typeFilter || selectedTag || query;
 
   const currentGroupCategories = categories.filter(c => {
@@ -182,21 +420,22 @@ export default function PublicFileList({ files, categories, groups }: Props) {
   });
 
   return (
-    <div className="flex flex-col gap-4 lg:gap-6">
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-2 scrollbar-hide border-b border-slate-100">
+    <div className="flex flex-col gap-3.5 sm:gap-4">
+      {/* 1. TOP: Phân hệ tabs (Apple TV sleek pills) */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         <button
           onClick={() => setSelectedGroup("")}
           className={clsx(
             "relative shrink-0 px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2",
             !selectedGroup
-              ? "text-white"
-              : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              ? "text-white shadow-md shadow-blue-500/20"
+              : "bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
           )}
         >
           {!selectedGroup && (
             <motion.div
               layoutId="active-group"
-              className="absolute inset-0 bg-gradient-to-r from-[#1D78B8] to-[#0d5485] rounded-full shadow-md"
+              className="absolute inset-0 bg-gradient-to-r from-[#1D78B8] to-[#0d5485] dark:from-sky-600 dark:to-blue-700 rounded-full shadow-md"
               initial={false}
               transition={{ type: "spring", stiffness: 500, damping: 35 }}
             />
@@ -212,20 +451,20 @@ export default function PublicFileList({ files, categories, groups }: Props) {
               className={clsx(
                 "relative shrink-0 px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2",
                 selectedGroup === grp.id
-                  ? "text-white"
-                  : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  ? "text-white shadow-md shadow-blue-500/20"
+                  : "bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
               )}
             >
               {selectedGroup === grp.id && (
                 <motion.div
                   layoutId="active-group"
-                  className="absolute inset-0 bg-gradient-to-r from-[#1D78B8] to-[#0d5485] rounded-full shadow-md"
+                  className="absolute inset-0 bg-gradient-to-r from-[#1D78B8] to-[#0d5485] dark:from-sky-600 dark:to-blue-700 rounded-full shadow-md"
                   initial={false}
                   transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
               )}
               <span className="relative z-10 flex items-center gap-2">
-                <span className={clsx(selectedGroup === grp.id ? "text-white" : "text-blue-500")}>
+                <span className={clsx(selectedGroup === grp.id ? "text-white" : "text-blue-500 dark:text-sky-400")}>
                   <IconComponent className="w-4 h-4" />
                 </span>
                 <span>{grp.name}</span>
@@ -235,23 +474,86 @@ export default function PublicFileList({ files, categories, groups }: Props) {
         })}
       </div>
 
-      <div className="flex-1 min-w-0">
+      {/* 2. DƯỚI TẤT CẢ PHÂN HỆ: Unified Search & Format Filter Toolbar */}
+      <div className="space-y-2 pb-2.5 pt-1 border-y border-slate-100 dark:border-slate-800">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3">
+          {/* Compact Search Input with Clear Button */}
+          <div className="relative w-full lg:w-72 xl:w-80 shrink-0">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 pointer-events-none z-10" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Tìm kiếm tài liệu, video, ảnh…"
+              aria-label="Tìm kiếm tài liệu"
+              className="input-base text-xs sm:text-sm !pl-10 !pr-8 h-10 rounded-xl w-full bg-slate-50 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 shadow-2xs focus:bg-white dark:focus:bg-slate-900"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                title="Xóa tìm kiếm"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
+          {/* Labeled Format Filter Buttons on the Same Row */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5 min-w-0 flex-1 justify-start lg:justify-end">
+            {FILE_TYPE_FILTERS.map((f) => {
+              const active = typeFilter === f.value;
+              const Icon = f.icon;
+              return (
+                <button
+                  key={f.value}
+                  onClick={() => setTypeFilter(f.value)}
+                  className={clsx(
+                    "px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 shadow-2xs border select-none active:scale-95",
+                    active
+                      ? "bg-blue-600 dark:bg-sky-600 text-white border-blue-500 shadow-xs shadow-blue-500/20"
+                      : "bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
+                  )}
+                >
+                  <Icon className={clsx("w-3.5 h-3.5", active ? "text-white" : "text-slate-500 dark:text-slate-400")} />
+                  <span>{f.label}</span>
+                </button>
+              );
+            })}
+
+            {/* Clear Filters button */}
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="btn-secondary flex items-center gap-1 text-xs text-red-500 dark:text-red-400 px-2.5 py-1.5 rounded-xl h-auto border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/40 shrink-0"
+                title="Xóa tất cả bộ lọc"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Xóa lọc</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 min-w-0">
+        {/* Categories if a group is selected */}
         {selectedGroup && currentGroupCategories.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
             <button
               onClick={() => setSelectedCategory("")}
               className={clsx(
                 "relative px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors",
                 !selectedCategory
-                  ? "text-white"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                  ? "text-white shadow-sm"
+                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750"
               )}
             >
               {!selectedCategory && (
                 <motion.div
                   layoutId="active-category"
-                  className="absolute inset-0 bg-blue-600 rounded-full shadow-sm"
+                  className="absolute inset-0 bg-blue-600 dark:bg-sky-600 rounded-full shadow-sm"
                   initial={false}
                   transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
@@ -265,14 +567,14 @@ export default function PublicFileList({ files, categories, groups }: Props) {
                 className={clsx(
                   "relative px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors",
                   selectedCategory === cat.id
-                    ? "text-white"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                    ? "text-white shadow-sm"
+                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750"
                 )}
               >
                 {selectedCategory === cat.id && (
                   <motion.div
                     layoutId="active-category"
-                    className="absolute inset-0 bg-blue-600 rounded-full shadow-sm"
+                    className="absolute inset-0 bg-blue-600 dark:bg-sky-600 rounded-full shadow-sm"
                     initial={false}
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
@@ -283,161 +585,53 @@ export default function PublicFileList({ files, categories, groups }: Props) {
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-5">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Tìm kiếm tài liệu…"
-              aria-label="Tìm kiếm tài liệu"
-              className="input-base text-sm"
-              style={{ paddingLeft: "2.25rem" }}
-            />
-          </div>
-
-          {hasActiveFilters && (
-            <button onClick={clearFilters} className="btn-secondary flex items-center gap-1 text-xs sm:text-sm text-red-500 px-3" style={{ height: "42px" }}>
-              <X className="w-4 h-4" /> Xóa
-            </button>
+        {/* Stats Line */}
+        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1 mb-4">
+          <p>
+            Hiển thị <strong className="text-slate-800 dark:text-slate-200 font-bold">{filtered.length}</strong> tài liệu
+            {hasActiveFilters && <span className="text-sky-600 dark:text-sky-400 font-semibold"> (đang lọc)</span>}
+          </p>
+          {totalPages > 1 && (
+            <span>Trang {currentPage} / {totalPages}</span>
           )}
         </div>
 
-        <p className="text-sm text-slate-500 mb-4">
-          Hiển thị <strong className="text-slate-700">{filtered.length}</strong> tài liệu
-          {hasActiveFilters && <span> (đã lọc)</span>}
-        </p>
-
+        {/* Apple TV Cinematic 16:9 Grid */}
         {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-slate-500 gap-3">
-              <Search className="w-12 h-12 text-slate-300" />
-              <p className="font-medium text-slate-500">Không tìm thấy tài liệu phù hợp</p>
-              <button onClick={clearFilters} className="text-blue-500 text-sm hover:underline mt-1">Xóa bộ lọc</button>
-            </div>
-          ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-5">
-            {filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((file) => {
-              const isNew = Date.now() - new Date(file.createdAt).getTime() < 24 * 60 * 60 * 1000;
-              return (
-              <div
+          <div className="flex flex-col items-center justify-center py-24 text-slate-500 dark:text-slate-400 gap-3 bg-white dark:bg-slate-900/40 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+            <Search className="w-12 h-12 text-slate-300 dark:text-slate-600" />
+            <p className="font-semibold text-base">Không tìm thấy tài liệu phù hợp</p>
+            <p className="text-xs text-slate-400">Hãy thử đổi từ khóa tìm kiếm hoặc chọn tất cả phân hệ</p>
+            <button onClick={clearFilters} className="btn-primary text-xs px-4 py-2 mt-2">Xóa bộ lọc</button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5">
+            {filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((file) => (
+              <AppleTVCard
                 key={file.id}
-                className="relative group bg-white border border-slate-200/70 hover:border-blue-300 hover:shadow-lg hover:-translate-y-0.5 rounded-2xl flex flex-col p-3 transition-all duration-300"
-              >
-                {isNew && (
-                  <div className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full z-10 shadow-sm animate-pulse border border-white">
-                    NEW
-                  </div>
-                )}
-                
-                <div className="flex items-start gap-3">
-                  <div 
-                    className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden relative border border-slate-100"
-                    style={{ width: "48px", height: "48px" }}
-                  >
-                    {(file.thumbnailUrl || (file.fileType.startsWith("image/") && file.filepath !== "external")) ? (
-                      <Image 
-                        src={`/api/thumbnail/${file.id}`} 
-                        alt="thumbnail" 
-                        width={48}
-                        height={48}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <div className={`flex items-center justify-center w-full h-full text-blue-600 bg-blue-50/30 ${(file.thumbnailUrl || (file.fileType.startsWith("image/") && file.filepath !== "external")) ? 'hidden' : ''}`}>
-                      <FileIcon mimeType={file.fileType} filename={file.filename} className="w-6 h-6" />
-                    </div>
-                  </div>
-                  
-                  <div className="min-w-0 flex-1 flex flex-col items-start overflow-hidden">
-                    <span
-                      className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white tracking-wider uppercase mb-1 truncate max-w-full inline-block"
-                      style={{ backgroundColor: file.category.color ?? "#3B82F6" }}
-                    >
-                      {file.category.name}
-                    </span>
-                    <h2 className="font-semibold text-slate-800 text-[13px] leading-snug w-full truncate group-hover:text-blue-600 transition-colors" title={file.title}>
-                      {file.title.length > 45 ? file.title.substring(0, 45) + "..." : file.title}
-                    </h2>
-                    {file.tags && file.tags.filter((t: any) => !isDepartmentTag(t.tag.name)).length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1.5 w-full">
-                        {file.tags.filter((t: any) => !isDepartmentTag(t.tag.name)).map((t: any) => (
-                          <span key={t.tag.id} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-100 text-[9px] text-slate-500 font-medium">
-                            <Tag className="w-2.5 h-2.5" />
-                            {t.tag.name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {file.description && (
-                  <p className="mt-2.5 text-xs text-slate-500 line-clamp-2 leading-relaxed" title={file.description}>
-                    {file.description}
-                  </p>
-                )}
-
-                <div className="mt-auto">
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
-                    <span className="font-medium">{formatFileSize(file.fileSize)}</span>
-                    <span>{formatDate(file.createdAt)}</span>
-                    {(file.viewCount > 0 || file.downloadCount > 0) && (
-                      <div className="flex items-center gap-2">
-                        {file.viewCount > 0 && (
-                          <span className="flex items-center gap-0.5 text-slate-500" title={`${file.viewCount} lượt xem`}>
-                            <Eye className="w-3 h-3" /> {file.viewCount}
-                          </span>
-                        )}
-                        {file.downloadCount > 0 && (
-                          <span className="flex items-center gap-0.5 text-slate-500" title={`${file.downloadCount} lượt tải`}>
-                            <Download className="w-3 h-3" /> {file.downloadCount}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2 mt-2.5">
-                    <Link
-                      href={`/document/${file.id}`}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold py-2 transition shadow-sm"
-                    >
-                      <Eye className="w-3.5 h-3.5" /> Chi tiết
-                    </Link>
-                    <a
-                      href={`/api/download/${file.id}`}
-                      download
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#1D78B8] hover:bg-[#0d5485] text-white rounded-lg text-xs font-bold py-2 transition shadow-sm"
-                    >
-                      <Download className="w-3.5 h-3.5" /> Tải xuống
-                    </a>
-                  </div>
-                </div>
-              </div>
-              );
-            })}
+                file={file}
+                onTagClick={(tag) => {
+                  setSelectedTag(tag);
+                  window.scrollTo({ top: 400, behavior: "smooth" });
+                }}
+              />
+            ))}
           </div>
         )}
 
         {/* Pagination UI */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-8">
+          <div className="flex items-center justify-center gap-2 mt-10">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm"
             >
-              Trước
+              Trang trước
             </button>
             
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                // Logic to show a reasonable number of pages
                 if (
                   page === 1 || 
                   page === totalPages || 
@@ -448,25 +642,21 @@ export default function PublicFileList({ files, categories, groups }: Props) {
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       className={clsx(
-                        "w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition",
+                        "w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition shadow-sm",
                         currentPage === page 
-                          ? "bg-blue-600 text-white shadow-sm" 
-                          : "text-slate-600 hover:bg-slate-100"
+                          ? "bg-blue-600 dark:bg-sky-600 text-white shadow-md shadow-blue-500/20" 
+                          : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                       )}
                     >
                       {page}
                     </button>
                   );
-                }
-                
-                // Show ellipsis
-                if (
-                  (page === 2 && currentPage > 3) ||
-                  (page === totalPages - 1 && currentPage < totalPages - 2)
+                } else if (
+                  page === currentPage - 2 || 
+                  page === currentPage + 2
                 ) {
-                  return <span key={page} className="text-slate-400 px-1">...</span>;
+                  return <span key={page} className="text-slate-400 dark:text-slate-600 px-1">…</span>;
                 }
-                
                 return null;
               })}
             </div>
@@ -474,44 +664,101 @@ export default function PublicFileList({ files, categories, groups }: Props) {
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-sm"
             >
-              Sau
+              Trang sau
             </button>
           </div>
         )}
 
-        {/* Tag Cloud */}
+        {/* Popular Tags Cloud (Professional & Gentle UI/UX Pro Max) */}
         {allTags.length > 0 && (
-          <div className="card mt-8 p-5 border border-slate-200/60 rounded-2xl bg-slate-50/50 shadow-sm">
-            <div className="space-y-3">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                <Tag className="w-4 h-4 text-blue-500" /> Phân loại theo chủ đề (Hashtags)
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {(showAllTags ? allTags : allTags.slice(0, 20)).map((tag) => (
+          <div className="mt-8 rounded-2xl bg-slate-50/70 dark:bg-slate-800/25 border border-slate-200/60 dark:border-slate-800 p-4 sm:p-5 backdrop-blur-xs transition-colors duration-300">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-sky-500/10 dark:bg-sky-400/15 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
+                  <Hash className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 tracking-tight flex items-center gap-1.5">
+                    Từ khóa & Chủ đề phổ biến
+                  </h2>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:block">
+                    Chạm để lọc nhanh tài liệu theo chủ đề sức khỏe
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-center">
+                {/* Active filter badge with clear button */}
+                {selectedTag && (
                   <button
-                    key={tag.id}
-                    onClick={() => setSelectedTag(selectedTag === tag.lowerName ? "" : tag.lowerName)}
-                    className={clsx(
-                      "px-3 py-1.5 rounded-xl text-xs font-bold transition-all border",
-                      selectedTag === tag.lowerName
-                        ? "bg-[#1D78B8] border-[#1D78B8] text-white shadow-sm"
-                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    )}
+                    onClick={() => setSelectedTag("")}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-sky-700 dark:text-sky-300 bg-sky-100/80 dark:bg-sky-950/60 border border-sky-200/80 dark:border-sky-800 px-2.5 py-0.5 rounded-full transition hover:bg-sky-200/80 dark:hover:bg-sky-900/80 shadow-2xs"
+                    title="Xóa bộ lọc thẻ hiện tại"
                   >
-                    #{tag.name} <span className={clsx("ml-1 font-semibold", selectedTag === tag.lowerName ? "text-blue-100" : "text-slate-400")}>({tag.count})</span>
+                    <span>Đang lọc: #{selectedTag}</span>
+                    <X className="w-3 h-3 ml-0.5 text-sky-500" />
                   </button>
-                ))}
-                {allTags.length > 20 && (
+                )}
+
+                {allTags.length > 18 && (
                   <button
                     onClick={() => setShowAllTags(!showAllTags)}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-200 border border-slate-300 text-slate-700 hover:bg-slate-300"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 bg-white/90 dark:bg-slate-800/80 hover:bg-sky-50/50 dark:hover:bg-slate-700/60 border border-slate-200/70 dark:border-slate-700/60 px-2.5 py-1 rounded-lg transition-all shadow-2xs"
                   >
-                    {showAllTags ? "Thu gọn" : `Xem thêm (${allTags.length - 20})`}
+                    <span>{showAllTags ? "Thu gọn" : `Xem tất cả (${allTags.length})`}</span>
+                    {showAllTags ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                   </button>
                 )}
               </div>
+            </div>
+
+            {/* Chips list */}
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              <button
+                onClick={() => setSelectedTag("")}
+                className={clsx(
+                  "px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 shadow-2xs cursor-pointer select-none",
+                  !selectedTag
+                    ? "bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xs ring-1 ring-slate-800/20 dark:ring-slate-100/30"
+                    : "bg-white/90 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600"
+                )}
+              >
+                Tất cả
+              </button>
+
+              {(showAllTags ? allTags : allTags.slice(0, 18)).map((t) => {
+                const active = selectedTag === t.lowerName;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setSelectedTag(active ? "" : t.lowerName)}
+                    className={clsx(
+                      "group px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1.5 shadow-2xs cursor-pointer select-none",
+                      active
+                        ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold shadow-xs shadow-sky-500/25 ring-2 ring-sky-400/20"
+                        : "bg-white/90 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700/60 hover:border-sky-300 dark:hover:border-sky-500/50 hover:bg-sky-50/50 dark:hover:bg-sky-950/30 hover:text-sky-600 dark:hover:text-sky-300"
+                    )}
+                  >
+                    <span className={clsx("font-semibold mr-0.5", active ? "text-sky-100" : "text-sky-500/70 dark:text-sky-400/70 group-hover:text-sky-600 dark:group-hover:text-sky-300")}>
+                      #
+                    </span>
+                    <span className="truncate max-w-[160px]">{t.name}</span>
+                    <span
+                      className={clsx(
+                        "text-[10px] px-1.5 py-0.2 rounded-full font-medium transition-colors",
+                        active
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-100 dark:bg-slate-700/80 text-slate-400 dark:text-slate-400 group-hover:bg-sky-100/80 dark:group-hover:bg-sky-900/40 group-hover:text-sky-600 dark:group-hover:text-sky-300"
+                      )}
+                    >
+                      {t.count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

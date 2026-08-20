@@ -1,7 +1,7 @@
 # backup-db.ps1 — Tự động backup SQLite DB cho CDCMedia
 # Chạy mỗi thứ 7 lúc 14:00 qua Windows Task Scheduler
 
-$AppDir     = "C:\cdcmedia"
+$AppDir     = (Resolve-Path "$PSScriptRoot\..").Path
 $DbSource   = "$AppDir\prisma\cdc-media.db"
 $BackupRoot = "C:\cdcmedia-backups"
 $KeepWeeks  = 8   # Giữ tối đa 8 bản (2 tháng)
