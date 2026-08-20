@@ -34,8 +34,7 @@ export default function LoginPage() {
 
       toast.success(`Xin chào, ${data.user.displayName ?? data.user.username}!`);
       const dest = data.user.role === "ADMIN" ? "/admin" : redirect;
-      router.push(dest);
-      router.refresh();
+      window.location.href = dest;
     } catch {
       toast.error("Lỗi kết nối máy chủ");
     } finally {
