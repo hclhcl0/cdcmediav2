@@ -5,9 +5,12 @@ const path = require("path");
 const prisma = new PrismaClient();
 
 async function importData() {
-  const jsonPath = path.join(__dirname, "sqlite_data.json");
+  let jsonPath = path.join(__dirname, "sqlite_data.json");
   if (!fs.existsSync(jsonPath)) {
-    console.error("❌ Không tìm thấy file sqlite_data.json");
+    jsonPath = path.join(__dirname, "../prisma/seed_data.json");
+  }
+  if (!fs.existsSync(jsonPath)) {
+    console.error("❌ Không tìm thấy file dữ liệu seed_data.json");
     process.exit(1);
   }
 
