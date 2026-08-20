@@ -65,7 +65,7 @@ export default function RelatedFiles({ relatedFiles }: { relatedFiles: any[] }) 
               <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-950 block">
                 {/* Background Clickable Link to Document */}
                 <Link href={`/document/${rel.id}`} className="absolute inset-0 z-0 block cursor-pointer" aria-label={rel.title}>
-                  {(rel.thumbnailUrl || (rel.fileType?.startsWith("image/") && rel.filepath !== "external")) && !isAudio ? (
+                  {(rel.thumbnailUrl || rel.driveFileId || (rel.fileType?.startsWith("image/") && rel.filepath !== "external")) && !isAudio ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={`/api/thumbnail/${rel.id}`}

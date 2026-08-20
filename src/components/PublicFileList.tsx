@@ -123,7 +123,7 @@ function AppleTVCard({ file, onTagClick }: { file: FileWithRelations; onTagClick
               className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
               onError={() => setImgError(true)}
             />
-          ) : (!file.isPublic || imgError) ? (
+          ) : !file.isPublic ? (
             /* Unshared / Private / Login-Required Document Fallback Poster (Adaptive Light & Dark Mode) */
             <div className="w-full h-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100/90 dark:from-slate-950 dark:via-amber-950/40 dark:to-slate-900 transition-colors duration-300">
               <div className="absolute -top-12 -left-12 w-36 h-36 rounded-full bg-amber-400/30 dark:bg-amber-500/15 blur-2xl pointer-events-none" />
