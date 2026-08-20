@@ -139,6 +139,17 @@ export default function RelatedFiles({ relatedFiles }: { relatedFiles: any[] }) 
                       <Layers className="w-2.5 h-2.5" /> Album
                     </span>
                   )}
+                  {/* Quick Download Button (Left of Hero Icon) */}
+                  <a
+                    href={`/api/download/${rel.id}`}
+                    download
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-7 h-7 rounded-full backdrop-blur-md bg-black/60 hover:bg-[#1D78B8] hover:text-white dark:bg-black/60 dark:hover:bg-sky-600 text-white/90 border border-white/20 shadow-md flex items-center justify-center transition-all group-hover:scale-110 active:scale-95 cursor-pointer"
+                    title="Tải xuống tài liệu"
+                    aria-label="Tải xuống"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                  </a>
                   {/* Hero Icon-Only Format Badge */}
                   <span
                     className={clsx("w-7 h-7 rounded-full backdrop-blur-md shadow-md border flex items-center justify-center transition-transform group-hover:scale-110", heroIconInfo.bg)}
@@ -150,35 +161,48 @@ export default function RelatedFiles({ relatedFiles }: { relatedFiles: any[] }) 
                 </div>
 
                 {/* Bottom Stats */}
-                <div className="absolute bottom-2 left-0 right-2.5 z-10 flex items-center justify-between pointer-events-none">
-                  {/* Stick Date Bookmark (Arrow pointing right, flat edge flush to left edge) */}
-                  <span
-                    className={clsx(
-                      "backdrop-blur-md bg-black/55 text-white/90 border-r border-white/20 text-[9px] font-semibold pl-2.5 pr-3.5 py-0.5 shadow-md truncate max-w-[130px] select-none text-left",
-                      "[clip-path:polygon(0%_0%,calc(100%-8px)_0%,100%_50%,calc(100%-8px)_100%,0%_100%)]"
+                <div className="absolute bottom-2 left-0 right-2.5 z-10 flex items-center justify-between pointer-events-none gap-1">
+                  {/* Left: Date + Views/Downloads stats */}
+                  <div className="flex items-center gap-1 min-w-0">
+                    {/* Stick Date Bookmark (Arrow pointing right, flat edge flush to left edge) */}
+                    <span
+                      className={clsx(
+                        "backdrop-blur-md bg-black/55 text-white/90 border-r border-white/20 text-[9px] font-semibold pl-2.5 pr-3.5 py-0.5 shadow-md truncate max-w-[110px] select-none text-left shrink-0",
+                        "[clip-path:polygon(0%_0%,calc(100%-8px)_0%,100%_50%,calc(100%-8px)_100%,0%_100%)]"
+                      )}
+                    >
+                      {rel.year ? `Năm ${rel.year}` : formatDate(rel.createdAt)}
+                    </span>
+
+                    {/* View & Download Counts next to Upload Date */}
+                    {(rel.viewCount > 0 || rel.downloadCount > 0) && (
+                      <div className="flex items-center gap-1.5 backdrop-blur-md bg-black/55 text-white/90 border border-white/15 px-1.5 py-0.5 rounded-md text-[9px] font-medium shadow-sm shrink-0">
+                        {rel.viewCount > 0 && (
+                          <span className="flex items-center gap-0.5" title={`${rel.viewCount} lượt xem`}>
+                            <Eye className="w-2.5 h-2.5 text-white/70" /> {rel.viewCount}
+                          </span>
+                        )}
+                        {rel.downloadCount > 0 && (
+                          <span className="flex items-center gap-0.5 text-emerald-400 font-semibold" title={`${rel.downloadCount} lượt tải`}>
+                            <Download className="w-2.5 h-2.5 text-emerald-400" /> {rel.downloadCount}
+                          </span>
+                        )}
+                      </div>
                     )}
-                  >
-                    {rel.year ? `Năm ${rel.year}` : formatDate(rel.createdAt)}
-                  </span>
-                  <span className="backdrop-blur-md bg-black/60 text-white/90 text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/10">
+                  </div>
+
+                  {/* Right: File Size */}
+                  <span className="backdrop-blur-md bg-black/60 text-white/90 text-[9px] font-bold px-2 py-0.5 rounded-md border border-white/10 shadow-sm shrink-0">
                     {formatFileSize(rel.fileSize)}
                   </span>
                 </div>
               </div>
 
               {/* Card Body */}
-              <div className="p-3.5 flex-1 flex flex-col justify-between">
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-snug line-clamp-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors mb-2">
+              <div className="p-3 sm:p-3.5 flex-1 flex flex-col justify-center space-y-1">
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-snug line-clamp-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
                   {rel.title}
                 </h3>
-                <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <span>{formatFileSize(rel.fileSize)}</span>
-                  {rel.downloadCount > 0 && (
-                    <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
-                      <Download className="w-3 h-3" /> {rel.downloadCount}
-                    </span>
-                  )}
-                </div>
               </div>
             </Link>
           );
