@@ -111,6 +111,18 @@ export async function GET(req: NextRequest, { params }: Params) {
       return new NextResponse(Readable.toWeb(data as Readable) as ReadableStream, { headers });
     } catch (err) {
       console.error("[download] Drive error:", err);
+      // Fallback: Redirect directly to Google Drive link so user can still access file
+      const driveId = file.driveFileId ?? file.driveWebLink?.match(/\/file\/d\/([^/]+)/)?.[1];
+      if (driveId) {
+        if (preview) {
+          return NextResponse.redirect(`https://drive.google.com/file/d/${driveId}/view`);
+        } else {
+          return NextResponse.redirect(`https://drive.google.com/uc?export=download&id=${driveId}`);
+        }
+      }
+      if (file.driveWebLink) {
+        return NextResponse.redirect(file.driveWebLink);
+      }
       return NextResponse.json({ error: "Lỗi khi tải từ Google Drive" }, { status: 502 });
     }
   }

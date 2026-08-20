@@ -27,21 +27,19 @@ async function start() {
         const raw = fs.readFileSync(jsonPath, 'utf-8');
         const data = JSON.parse(raw);
 
-        // Check if gdrive settings exist
-        const gdriveSetting = await prisma.appSetting.findUnique({
-          where: { key: 'gdrive_client_id' }
-        });
-
-        if (!gdriveSetting && data.settings && Array.isArray(data.settings)) {
-          console.log('📥 Importing default AppSettings (Google Drive, etc.) from sqlite_data.json...');
+        // Always ensure Google Drive and essential AppSettings are populated if missing or empty
+        if (data.settings && Array.isArray(data.settings)) {
           for (const s of data.settings) {
-            await prisma.appSetting.upsert({
-              where: { key: s.key },
-              update: { value: s.value },
-              create: { key: s.key, value: s.value }
-            });
+            const current = await prisma.appSetting.findUnique({ where: { key: s.key } });
+            if (!current || !current.value || current.value.trim() === '') {
+              await prisma.appSetting.upsert({
+                where: { key: s.key },
+                update: { value: s.value },
+                create: { key: s.key, value: s.value }
+              });
+              console.log(`✅ Synced AppSetting "${s.key}"`);
+            }
           }
-          console.log(`✅ Synced ${data.settings.length} AppSettings successfully!`);
         }
 
         // Check if DB has 0 files, auto-run import
