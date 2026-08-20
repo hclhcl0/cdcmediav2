@@ -149,7 +149,7 @@ async function importData() {
   console.log(`⚙️ Đang nạp ${data.settings.length} AppSettings...`);
   for (const s of data.settings) {
     await prisma.appSetting.upsert({
-      where: { id: s.id },
+      where: { key: s.key },
       update: { value: s.value, updatedAt: new Date(s.updatedAt) },
       create: {
         id: s.id,
