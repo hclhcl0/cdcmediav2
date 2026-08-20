@@ -110,69 +110,72 @@ function AppleTVCard({ file, onTagClick }: { file: FileWithRelations; onTagClick
 
   return (
     <div className="group relative flex flex-col rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-xl dark:hover:shadow-cyan-500/10 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300 hover:-translate-y-1 overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
-      {/* 16:9 Apple TV Cinematic Poster */}
-      <Link href={`/document/${file.id}`} className="relative aspect-[16/9] w-full overflow-hidden bg-slate-950 block">
-        {hasValidThumb && !isAudio ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={thumbSrc}
-            alt={file.title}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-            onError={() => setImgError(true)}
-          />
-        ) : (!file.isPublic || imgError) ? (
-          /* Unshared / Private / Login-Required Document Fallback Poster (Adaptive Light & Dark Mode) */
-          <div className="w-full h-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100/90 dark:from-slate-950 dark:via-amber-950/40 dark:to-slate-900 transition-colors duration-300">
-            <div className="absolute -top-12 -left-12 w-36 h-36 rounded-full bg-amber-400/30 dark:bg-amber-500/15 blur-2xl pointer-events-none" />
-            <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-orange-400/25 dark:bg-amber-600/15 blur-2xl pointer-events-none" />
-            <div className="relative z-10 p-3.5 rounded-2xl bg-white/85 dark:bg-amber-500/10 backdrop-blur-md border border-amber-300/80 dark:border-amber-500/30 shadow-xl group-hover:scale-110 transition-all duration-300 flex items-center justify-center">
-              <Lock className="w-7 h-7 text-amber-600 dark:text-amber-400 drop-shadow-md" />
+      {/* 16:9 Apple TV Cinematic Poster Container */}
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-950 block">
+        {/* Background Clickable Link to Document */}
+        <Link href={`/document/${file.id}`} className="absolute inset-0 z-0 block cursor-pointer" aria-label={file.title}>
+          {hasValidThumb && !isAudio ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={thumbSrc}
+              alt={file.title}
+              loading="lazy"
+              className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+              onError={() => setImgError(true)}
+            />
+          ) : (!file.isPublic || imgError) ? (
+            /* Unshared / Private / Login-Required Document Fallback Poster (Adaptive Light & Dark Mode) */
+            <div className="w-full h-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100/90 dark:from-slate-950 dark:via-amber-950/40 dark:to-slate-900 transition-colors duration-300">
+              <div className="absolute -top-12 -left-12 w-36 h-36 rounded-full bg-amber-400/30 dark:bg-amber-500/15 blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-orange-400/25 dark:bg-amber-600/15 blur-2xl pointer-events-none" />
+              <div className="relative z-10 p-3.5 rounded-2xl bg-white/85 dark:bg-amber-500/10 backdrop-blur-md border border-amber-300/80 dark:border-amber-500/30 shadow-xl group-hover:scale-110 transition-all duration-300 flex items-center justify-center">
+                <Lock className="w-7 h-7 text-amber-600 dark:text-amber-400 drop-shadow-md" />
+              </div>
             </div>
-          </div>
-        ) : isAudio ? (
-          /* Audio Soundwave Equalizer Poster (Adaptive Light & Dark Mode) */
-          <div className="w-full h-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-purple-100 via-rose-50 to-indigo-100 dark:from-slate-950 dark:via-purple-950/80 dark:to-slate-900 transition-colors duration-300">
-            <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-rose-400/30 dark:bg-pink-500/20 blur-2xl pointer-events-none" />
-            <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-purple-400/30 dark:bg-purple-500/20 blur-2xl pointer-events-none" />
-            
-            {/* Center Headphones Icon */}
-            <div className="relative z-10 p-2.5 rounded-2xl bg-white/85 dark:bg-white/10 backdrop-blur-md border border-purple-200/80 dark:border-white/20 shadow-xl mb-3 group-hover:scale-110 transition-all duration-300">
-              <Headphones className="w-6 h-6 text-purple-600 dark:text-pink-400 drop-shadow-md" />
-            </div>
+          ) : isAudio ? (
+            /* Audio Soundwave Equalizer Poster (Adaptive Light & Dark Mode) */
+            <div className="w-full h-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-purple-100 via-rose-50 to-indigo-100 dark:from-slate-950 dark:via-purple-950/80 dark:to-slate-900 transition-colors duration-300">
+              <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-rose-400/30 dark:bg-pink-500/20 blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-purple-400/30 dark:bg-purple-500/20 blur-2xl pointer-events-none" />
+              
+              {/* Center Headphones Icon */}
+              <div className="relative z-10 p-2.5 rounded-2xl bg-white/85 dark:bg-white/10 backdrop-blur-md border border-purple-200/80 dark:border-white/20 shadow-xl mb-3 group-hover:scale-110 transition-all duration-300">
+                <Headphones className="w-6 h-6 text-purple-600 dark:text-pink-400 drop-shadow-md" />
+              </div>
 
-            {/* Dynamic Soundwave Visualizer Bars */}
-            <div className="relative z-10 flex items-center justify-center gap-1.5 h-7 px-4">
-              {[35, 70, 95, 55, 85, 45, 90, 100, 65, 80, 50, 75, 40].map((height, i) => (
-                <span
-                  key={i}
-                  className="w-1 rounded-full bg-gradient-to-t from-purple-600 via-pink-500 to-rose-400 dark:from-pink-500 dark:via-rose-400 dark:to-purple-400 shadow-sm"
-                  style={{
-                    height: `${height}%`,
-                    opacity: 0.9,
-                  }}
-                />
-              ))}
+              {/* Dynamic Soundwave Visualizer Bars */}
+              <div className="relative z-10 flex items-center justify-center gap-1.5 h-7 px-4">
+                {[35, 70, 95, 55, 85, 45, 90, 100, 65, 80, 50, 75, 40].map((height, i) => (
+                  <span
+                    key={i}
+                    className="w-1 rounded-full bg-gradient-to-t from-purple-600 via-pink-500 to-rose-400 dark:from-pink-500 dark:via-rose-400 dark:to-purple-400 shadow-sm"
+                    style={{
+                      height: `${height}%`,
+                      opacity: 0.9,
+                    }}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ) : (
-          /* Clean Minimalist Fallback Poster (Adaptive Light & Dark Mode) */
-          <div className="w-full h-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100/90 dark:from-slate-900 dark:via-slate-850 dark:to-blue-950 transition-colors duration-300">
-            <div className="absolute -top-12 -left-12 w-36 h-36 rounded-full bg-blue-400/20 dark:bg-blue-500/20 blur-2xl pointer-events-none" />
-            <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-indigo-400/20 dark:bg-indigo-500/20 blur-2xl pointer-events-none" />
-            
-            {/* Center File Hero Icon */}
-            <div className="relative z-10 p-3.5 rounded-2xl bg-white/85 dark:bg-white/5 backdrop-blur-md border border-slate-200/80 dark:border-white/20 shadow-xl group-hover:scale-110 group-hover:border-white/40 transition-all duration-300 flex items-center justify-center">
-              <HeroIcon className="w-7 h-7 text-slate-700 dark:text-white drop-shadow-md" />
+          ) : (
+            /* Clean Minimalist Fallback Poster (Adaptive Light & Dark Mode) */
+            <div className="w-full h-full flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100/90 dark:from-slate-900 dark:via-slate-850 dark:to-blue-950 transition-colors duration-300">
+              <div className="absolute -top-12 -left-12 w-36 h-36 rounded-full bg-blue-400/20 dark:bg-blue-500/20 blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-12 -right-12 w-36 h-36 rounded-full bg-indigo-400/20 dark:bg-indigo-500/20 blur-2xl pointer-events-none" />
+              
+              {/* Center File Hero Icon */}
+              <div className="relative z-10 p-3.5 rounded-2xl bg-white/85 dark:bg-white/5 backdrop-blur-md border border-slate-200/80 dark:border-white/20 shadow-xl group-hover:scale-110 group-hover:border-white/40 transition-all duration-300 flex items-center justify-center">
+                <HeroIcon className="w-7 h-7 text-slate-700 dark:text-white drop-shadow-md" />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Ambient Dark Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+          {/* Ambient Dark Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+        </Link>
 
         {/* Floating Stick Category Badge (Top-Left, Arrow pointing to the right >, flush to top-left) */}
-        <div className="absolute top-0 left-0 z-10">
+        <div className="absolute top-0 left-0 z-10 pointer-events-none">
           <span
             className={clsx(
               "backdrop-blur-md bg-black/60 text-white/95 border-r border-b border-white/20 pl-2.5 pr-3.5 py-1 text-[9px] font-bold tracking-wide uppercase shadow-md inline-flex items-center gap-1.5 select-none",
@@ -204,7 +207,6 @@ function AppleTVCard({ file, onTagClick }: { file: FileWithRelations; onTagClick
             <a
               href={`/api/download/${file.id}`}
               download
-              onClick={(e) => e.stopPropagation()}
               className="w-7 h-7 rounded-full backdrop-blur-md bg-black/60 hover:bg-[#1D78B8] hover:text-white dark:bg-black/60 dark:hover:bg-sky-600 text-white/90 border border-white/20 shadow-md flex items-center justify-center transition-all group-hover:scale-110 active:scale-95 cursor-pointer"
               title="Tải xuống tài liệu"
               aria-label="Tải xuống"
@@ -223,7 +225,7 @@ function AppleTVCard({ file, onTagClick }: { file: FileWithRelations; onTagClick
 
           {/* Colorless Translucent Frosted Glass Sticky Arrow Tabs (Pointing inward, square edge flush to thumb edge) */}
           {cleanTags.length > 0 && (
-            <div className="flex flex-col items-end gap-1 mt-1 -mr-2.5">
+            <div className="flex flex-col items-end gap-1.5 sm:gap-1 mt-1 -mr-2.5">
               {cleanTags.slice(0, 3).map((t: any) => (
                 <button
                   key={t.tag.id}
@@ -234,8 +236,8 @@ function AppleTVCard({ file, onTagClick }: { file: FileWithRelations; onTagClick
                     onTagClick?.(t.tag.name.toLowerCase());
                   }}
                   className={clsx(
-                    "backdrop-blur-md bg-black/55 hover:bg-black/85 text-white/90 hover:text-white border-l border-white/20 text-[9px] font-semibold pl-3.5 pr-2 py-0.5 shadow-md transition-all hover:-translate-x-1 truncate max-w-[130px] select-none text-right",
-                    "[clip-path:polygon(8px_0%,100%_0%,100%_100%,8px_100%,0%_50%)]"
+                    "backdrop-blur-md bg-black/60 hover:bg-black/85 text-white/95 hover:text-white border-l border-white/25 text-[10px] sm:text-[9px] font-bold sm:font-semibold pl-4 sm:pl-3.5 pr-2.5 sm:pr-2 py-1.5 sm:py-0.5 shadow-md transition-all hover:-translate-x-1 truncate max-w-[135px] select-none text-right cursor-pointer",
+                    "[clip-path:polygon(9px_0%,100%_0%,100%_100%,9px_100%,0%_50%)] sm:[clip-path:polygon(8px_0%,100%_0%,100%_100%,8px_100%,0%_50%)]"
                   )}
                   title={`Lọc theo thẻ: ${t.tag.name}`}
                 >
@@ -244,7 +246,7 @@ function AppleTVCard({ file, onTagClick }: { file: FileWithRelations; onTagClick
               ))}
               {cleanTags.length > 3 && (
                 <span
-                  className="backdrop-blur-md bg-black/45 text-white/80 text-[8px] font-bold pl-3 pr-1.5 py-0.5 shadow-sm [clip-path:polygon(6px_0%,100%_0%,100%_100%,6px_100%,0%_50%)]"
+                  className="backdrop-blur-md bg-black/50 text-white/90 text-[9px] sm:text-[8px] font-bold pl-3.5 sm:pl-3 pr-2 sm:pr-1.5 py-1 sm:py-0.5 shadow-sm [clip-path:polygon(7px_0%,100%_0%,100%_100%,7px_100%,0%_50%)] sm:[clip-path:polygon(6px_0%,100%_0%,100%_100%,6px_100%,0%_50%)]"
                 >
                   +{cleanTags.length - 3}
                 </span>
@@ -289,7 +291,7 @@ function AppleTVCard({ file, onTagClick }: { file: FileWithRelations; onTagClick
             {formatFileSize(file.fileSize)}
           </span>
         </div>
-      </Link>
+      </div>
 
       {/* Card Info Content (Apple TV clean & compact) */}
       <div className="p-3 sm:p-3.5 flex-1 flex flex-col justify-center space-y-1">

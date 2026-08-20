@@ -57,66 +57,68 @@ export default function RelatedFiles({ relatedFiles }: { relatedFiles: any[] }) 
           const HeroIcon = heroIconInfo.icon;
 
           return (
-            <Link
+            <div
               key={rel.id}
-              href={`/document/${rel.id}`}
               className="group relative flex flex-col rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-xl dark:hover:shadow-cyan-500/10 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300 hover:-translate-y-1 overflow-hidden ring-1 ring-black/5 dark:ring-white/5 h-full"
             >
-              {/* 16:9 Apple TV Cinematic Poster */}
+              {/* 16:9 Apple TV Cinematic Poster Container */}
               <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-950 block">
-                {(rel.thumbnailUrl || (rel.fileType?.startsWith("image/") && rel.filepath !== "external")) && !isAudio ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={`/api/thumbnail/${rel.id}`}
-                    alt={rel.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const fallback = e.currentTarget.parentElement?.querySelector('.lock-fallback');
-                      if (fallback) fallback.classList.remove('hidden');
-                    }}
-                  />
-                ) : !rel.isPublic ? (
-                  /* Unshared / Private Document Fallback Poster (Adaptive Light & Dark Mode) */
-                  <div className="w-full h-full flex flex-col items-center justify-center p-3 relative overflow-hidden bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100/90 dark:from-slate-950 dark:via-amber-950/40 dark:to-slate-900 transition-colors duration-300">
-                    <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-amber-400/30 dark:bg-amber-500/15 blur-2xl pointer-events-none" />
-                    <div className="relative z-10 p-2.5 rounded-2xl bg-white/85 dark:bg-amber-500/10 backdrop-blur-md border border-amber-300/80 dark:border-amber-500/30 shadow-xl group-hover:scale-110 transition-all duration-300 flex items-center justify-center">
-                      <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400 drop-shadow-md" />
+                {/* Background Clickable Link to Document */}
+                <Link href={`/document/${rel.id}`} className="absolute inset-0 z-0 block cursor-pointer" aria-label={rel.title}>
+                  {(rel.thumbnailUrl || (rel.fileType?.startsWith("image/") && rel.filepath !== "external")) && !isAudio ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`/api/thumbnail/${rel.id}`}
+                      alt={rel.title}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.parentElement?.querySelector('.lock-fallback');
+                        if (fallback) fallback.classList.remove('hidden');
+                      }}
+                    />
+                  ) : !rel.isPublic ? (
+                    /* Unshared / Private Document Fallback Poster (Adaptive Light & Dark Mode) */
+                    <div className="w-full h-full flex flex-col items-center justify-center p-3 relative overflow-hidden bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100/90 dark:from-slate-950 dark:via-amber-950/40 dark:to-slate-900 transition-colors duration-300">
+                      <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-amber-400/30 dark:bg-amber-500/15 blur-2xl pointer-events-none" />
+                      <div className="relative z-10 p-2.5 rounded-2xl bg-white/85 dark:bg-amber-500/10 backdrop-blur-md border border-amber-300/80 dark:border-amber-500/30 shadow-xl group-hover:scale-110 transition-all duration-300 flex items-center justify-center">
+                        <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400 drop-shadow-md" />
+                      </div>
                     </div>
-                  </div>
-                ) : isAudio ? (
-                  /* Audio Soundwave Equalizer Poster (Adaptive Light & Dark Mode) */
-                  <div className="w-full h-full flex flex-col items-center justify-center p-3 relative overflow-hidden bg-gradient-to-br from-purple-100 via-rose-50 to-indigo-100 dark:from-slate-950 dark:via-purple-950/80 dark:to-slate-900 transition-colors duration-300">
-                    <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-rose-400/30 dark:bg-pink-500/20 blur-2xl pointer-events-none" />
-                    <div className="relative z-10 p-2 rounded-2xl bg-white/85 dark:bg-white/10 backdrop-blur-md border border-purple-200/80 dark:border-white/20 shadow-xl mb-2.5 group-hover:scale-110 transition-all duration-300">
-                      <Headphones className="w-5 h-5 text-purple-600 dark:text-pink-400 drop-shadow-md" />
+                  ) : isAudio ? (
+                    /* Audio Soundwave Equalizer Poster (Adaptive Light & Dark Mode) */
+                    <div className="w-full h-full flex flex-col items-center justify-center p-3 relative overflow-hidden bg-gradient-to-br from-purple-100 via-rose-50 to-indigo-100 dark:from-slate-950 dark:via-purple-950/80 dark:to-slate-900 transition-colors duration-300">
+                      <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-rose-400/30 dark:bg-pink-500/20 blur-2xl pointer-events-none" />
+                      <div className="relative z-10 p-2 rounded-2xl bg-white/85 dark:bg-white/10 backdrop-blur-md border border-purple-200/80 dark:border-white/20 shadow-xl mb-2.5 group-hover:scale-110 transition-all duration-300">
+                        <Headphones className="w-5 h-5 text-purple-600 dark:text-pink-400 drop-shadow-md" />
+                      </div>
+                      <div className="relative z-10 flex items-center justify-center gap-1 h-6 px-3">
+                        {[35, 70, 95, 55, 85, 45, 90, 100, 65, 80, 50].map((height, i) => (
+                          <span
+                            key={i}
+                            className="w-1 rounded-full bg-gradient-to-t from-purple-600 via-pink-500 to-rose-400 dark:from-pink-500 dark:via-rose-400 dark:to-purple-400 shadow-sm"
+                            style={{ height: `${height}%`, opacity: 0.9 }}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <div className="relative z-10 flex items-center justify-center gap-1 h-6 px-3">
-                      {[35, 70, 95, 55, 85, 45, 90, 100, 65, 80, 50].map((height, i) => (
-                        <span
-                          key={i}
-                          className="w-1 rounded-full bg-gradient-to-t from-purple-600 via-pink-500 to-rose-400 dark:from-pink-500 dark:via-rose-400 dark:to-purple-400 shadow-sm"
-                          style={{ height: `${height}%`, opacity: 0.9 }}
-                        />
-                      ))}
+                  ) : (
+                    /* Clean Fallback Poster (Adaptive Light & Dark Mode) */
+                    <div className="w-full h-full flex flex-col items-center justify-center p-3 relative overflow-hidden bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100/90 dark:from-slate-900 dark:via-slate-850 dark:to-blue-950 transition-colors duration-300">
+                      <div className="p-3 rounded-2xl bg-white/85 dark:bg-white/10 backdrop-blur-md border border-slate-200/80 dark:border-white/20 shadow-lg group-hover:scale-110 transition-all duration-300">
+                        <HeroIcon className="w-7 h-7 text-slate-700 dark:text-white drop-shadow-md" />
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  /* Clean Fallback Poster (Adaptive Light & Dark Mode) */
-                  <div className="w-full h-full flex flex-col items-center justify-center p-3 relative overflow-hidden bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-100/90 dark:from-slate-900 dark:via-slate-850 dark:to-blue-950 transition-colors duration-300">
-                    <div className="p-3 rounded-2xl bg-white/85 dark:bg-white/10 backdrop-blur-md border border-slate-200/80 dark:border-white/20 shadow-lg group-hover:scale-110 transition-all duration-300">
-                      <HeroIcon className="w-7 h-7 text-slate-700 dark:text-white drop-shadow-md" />
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Ambient Dark Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                  {/* Ambient Dark Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                </Link>
 
                 {/* Floating Stick Category Badge (Top-Left, Arrow pointing to the right >, flush to top-left) */}
                 {rel.category && (
-                  <div className="absolute top-0 left-0 z-10">
+                  <div className="absolute top-0 left-0 z-10 pointer-events-none">
                     <span
                       className={clsx(
                         "backdrop-blur-md bg-black/60 text-white/95 border-r border-b border-white/20 pl-2.5 pr-3.5 py-1 text-[9px] font-bold tracking-wide uppercase shadow-md inline-flex items-center gap-1.5 select-none",
@@ -143,7 +145,6 @@ export default function RelatedFiles({ relatedFiles }: { relatedFiles: any[] }) 
                   <a
                     href={`/api/download/${rel.id}`}
                     download
-                    onClick={(e) => e.stopPropagation()}
                     className="w-7 h-7 rounded-full backdrop-blur-md bg-black/60 hover:bg-[#1D78B8] hover:text-white dark:bg-black/60 dark:hover:bg-sky-600 text-white/90 border border-white/20 shadow-md flex items-center justify-center transition-all group-hover:scale-110 active:scale-95 cursor-pointer"
                     title="Tải xuống tài liệu"
                     aria-label="Tải xuống"
@@ -200,11 +201,13 @@ export default function RelatedFiles({ relatedFiles }: { relatedFiles: any[] }) 
 
               {/* Card Body */}
               <div className="p-3 sm:p-3.5 flex-1 flex flex-col justify-center space-y-1">
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-snug line-clamp-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                  {rel.title}
-                </h3>
+                <Link href={`/document/${rel.id}`} className="block">
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-snug line-clamp-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                    {rel.title}
+                  </h3>
+                </Link>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>
