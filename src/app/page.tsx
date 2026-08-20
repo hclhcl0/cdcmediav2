@@ -107,18 +107,18 @@ export default async function HomePage() {
             </p>
           </div>
 
-          {/* Centered & Larger Numbers Stats Badges */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
+          {/* Responsive 2-Row x 2-Column Grid on Mobile, Flex on Desktop */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:flex md:flex-wrap md:items-center gap-2 sm:gap-2.5 w-full md:w-auto shrink-0 pt-1 md:pt-0">
             {stats.map((s) => (
               <div
                 key={s.label}
-                className={`flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl ${s.bg} border ${s.border} backdrop-blur-md shadow-2xs hover:shadow-xs transition-all`}
+                className={`flex items-center justify-center sm:justify-start gap-2.5 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl ${s.bg} border ${s.border} backdrop-blur-md shadow-2xs hover:shadow-xs transition-all w-full md:w-auto`}
               >
                 <div className="p-1.5 sm:p-2 rounded-lg bg-white/80 dark:bg-black/25 shadow-2xs shrink-0 border border-black/5 dark:border-white/10">
                   <s.icon className={`w-4 h-4 ${s.color}`} />
                 </div>
-                <div className="flex flex-col items-center justify-center text-center min-w-[54px]">
-                  <span className={`text-lg sm:text-xl font-black ${s.color} tabular-nums leading-tight tracking-tight`}>
+                <div className="flex flex-col items-center justify-center text-center min-w-[52px]">
+                  <span className={`text-base sm:text-lg md:text-xl font-black ${s.color} tabular-nums leading-tight tracking-tight`}>
                     {s.value}
                   </span>
                   <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider leading-none mt-0.5 text-center">
