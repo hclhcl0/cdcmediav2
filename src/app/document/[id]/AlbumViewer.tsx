@@ -122,8 +122,8 @@ export default function AlbumViewer({ items }: { items: MediaItem[] }) {
       {items.length > 1 && (
         <div className="h-24 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-3 px-4 overflow-x-auto">
           {items.map((item, idx) => {
-            const isThumbImage = item.fileType.startsWith("image/");
-            const thumbUrl = item.thumbnailUrl || (isThumbImage ? `/api/download/${item.id}?preview=true` : null);
+            const hasThumb = item.thumbnailUrl || item.driveFileId || item.fileType.startsWith("image/");
+            const thumbUrl = hasThumb ? `/api/thumbnail/${item.id}` : null;
             const active = idx === currentIndex;
             
             return (
@@ -134,12 +134,23 @@ export default function AlbumViewer({ items }: { items: MediaItem[] }) {
               >
                 {thumbUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={thumbUrl} alt="Thumbnail" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <FileIcon mimeType={item.fileType} filename={item.filename} className="w-8 h-8" />
-                  </div>
-                )}
+                  <img
+                    src={thumbUrl}
+                    alt="Thumbnail"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      const icon = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (icon) icon.style.display = "flex";
+                    }}
+                  />
+                ) : null}
+                <div
+                  className="w-full h-full bg-slate-100 dark:bg-slate-800 items-center justify-center"
+                  style={{ display: thumbUrl ? "none" : "flex" }}
+                >
+                  <FileIcon mimeType={item.fileType} filename={item.filename} className="w-8 h-8" />
+                </div>
               </button>
             );
           })}
