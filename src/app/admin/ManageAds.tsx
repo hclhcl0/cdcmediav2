@@ -1,7 +1,7 @@
 // src/app/admin/ManageAds.tsx — quản lý Banner, Sidebar Ads, Popup
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Trash2, Pencil, Check, X, ToggleLeft, ToggleRight, Image, Megaphone, Bell } from "lucide-react";
+import { Plus, Trash2, Pencil, Check, X, ToggleLeft, ToggleRight, Image, Megaphone, Bell, Sliders, Eye, EyeOff, Clock, Save, Layers } from "lucide-react";
 import toast from "react-hot-toast";
 import ImageUploader from "@/components/ImageUploader";
 import { clsx } from "clsx";
@@ -35,11 +35,60 @@ function BannerManager() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ title: "", imageUrl: "", linkUrl: "", position: "TOP", sortOrder: "0" });
 
+  // Banner slide display settings
+  const [slideSettings, setSlideSettings] = useState({
+    banner_slide_enabled: true,
+    banner_slide_top: true,
+    banner_slide_middle: true,
+    banner_slide_bottom: true,
+    banner_slide_auto_play: true,
+    banner_slide_interval: "5000",
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
+
   const load = useCallback(() => {
     fetch("/api/banners?all=1")
       .then(r => r.json()).then(data => setItems(Array.isArray(data) ? data : [])).catch(() => {});
+    
+    fetch("/api/banners/settings")
+      .then(r => r.json())
+      .then(d => {
+        if (d.settings) {
+          setSlideSettings({
+            banner_slide_enabled: d.settings.banner_slide_enabled !== "false",
+            banner_slide_top: d.settings.banner_slide_top !== "false",
+            banner_slide_middle: d.settings.banner_slide_middle !== "false",
+            banner_slide_bottom: d.settings.banner_slide_bottom !== "false",
+            banner_slide_auto_play: d.settings.banner_slide_auto_play !== "false",
+            banner_slide_interval: d.settings.banner_slide_interval || "5000",
+          });
+        }
+      })
+      .catch(() => {});
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  async function updateSettingKey(key: string, value: any) {
+    const updated = { ...slideSettings, [key]: value };
+    setSlideSettings(updated);
+    setSavingSettings(true);
+    try {
+      const res = await fetch("/api/banners/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [key]: String(value) }),
+      });
+      if (res.ok) {
+        toast.success("Đã cập nhật cài đặt hiển thị banner!");
+      } else {
+        toast.error("Lỗi lưu cài đặt");
+      }
+    } catch {
+      toast.error("Lỗi kết nối máy chủ");
+    } finally {
+      setSavingSettings(false);
+    }
+  }
 
   function resetForm() { setForm({ title: "", imageUrl: "", linkUrl: "", position: "TOP", sortOrder: "0" }); }
 
@@ -72,16 +121,140 @@ function BannerManager() {
   const posLabel: Record<string, string> = { TOP: "Trên cùng", MIDDLE: "Giữa trang", BOTTOM: "Dưới footer" };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500 dark:text-slate-400">Banner ngang hiển thị trên/giữa/dưới trang chủ</p>
-        <button onClick={() => { setAdding(true); setEditId(null); resetForm(); }} className="btn-primary flex items-center gap-1.5 text-sm">
-          <Plus className="w-4 h-4" /> Thêm banner
+    <div className="space-y-5">
+      {/* ── Cấu hình & Ẩn / Hiện Banner Slide ──────────────────────────────── */}
+      <div className="rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-gradient-to-br from-blue-50/70 via-indigo-50/40 to-slate-50 dark:from-blue-950/40 dark:via-indigo-950/20 dark:to-slate-900/60 p-4 sm:p-5 space-y-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-blue-100 dark:border-blue-900/40 pb-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-blue-600 dark:bg-blue-500 text-white shadow-sm shadow-blue-500/30">
+              <Sliders className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base flex items-center gap-2">
+                Cài đặt & Ẩn/Hiện Banner Slide
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Bật/tắt hiển thị banner slide trên toàn bộ website hoặc theo từng vị trí
+              </p>
+            </div>
+          </div>
+
+          {/* Master Switch */}
+          <button
+            type="button"
+            onClick={() => updateSettingKey("banner_slide_enabled", !slideSettings.banner_slide_enabled)}
+            disabled={savingSettings}
+            className={clsx(
+              "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm",
+              slideSettings.banner_slide_enabled
+                ? "bg-emerald-600 text-white shadow-emerald-500/20 hover:bg-emerald-700"
+                : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700"
+            )}
+          >
+            {slideSettings.banner_slide_enabled ? (
+              <>
+                <Eye className="w-4 h-4" />
+                <span>Đang BẬT Banner Slide</span>
+              </>
+            ) : (
+              <>
+                <EyeOff className="w-4 h-4" />
+                <span>Đang ẨN Banner Slide</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Chi tiết từng vị trí & tốc độ trượt */}
+        <div className={clsx("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 transition-opacity", !slideSettings.banner_slide_enabled && "opacity-50 pointer-events-none")}>
+          {/* Vị trí TOP */}
+          <div className="p-3 bg-white dark:bg-slate-900/80 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1.5 flex flex-col justify-between">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Trên cùng (dưới Navbar)</span>
+              <button
+                type="button"
+                onClick={() => updateSettingKey("banner_slide_top", !slideSettings.banner_slide_top)}
+                className="text-slate-500 hover:text-blue-600 transition"
+              >
+                {slideSettings.banner_slide_top ? <ToggleRight className="w-6 h-6 text-blue-600 dark:text-sky-400" /> : <ToggleLeft className="w-6 h-6 text-slate-400" />}
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">Banner chạy ngang cố định dưới thanh menu</p>
+          </div>
+
+          {/* Vị trí MIDDLE */}
+          <div className="p-3 bg-white dark:bg-slate-900/80 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1.5 flex flex-col justify-between">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Giữa trang (trang chủ)</span>
+              <button
+                type="button"
+                onClick={() => updateSettingKey("banner_slide_middle", !slideSettings.banner_slide_middle)}
+                className="text-slate-500 hover:text-blue-600 transition"
+              >
+                {slideSettings.banner_slide_middle ? <ToggleRight className="w-6 h-6 text-blue-600 dark:text-sky-400" /> : <ToggleLeft className="w-6 h-6 text-slate-400" />}
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">Banner sau phần Thống kê tổng hợp</p>
+          </div>
+
+          {/* Vị trí BOTTOM */}
+          <div className="p-3 bg-white dark:bg-slate-900/80 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1.5 flex flex-col justify-between">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Chân trang (trên Footer)</span>
+              <button
+                type="button"
+                onClick={() => updateSettingKey("banner_slide_bottom", !slideSettings.banner_slide_bottom)}
+                className="text-slate-500 hover:text-blue-600 transition"
+              >
+                {slideSettings.banner_slide_bottom ? <ToggleRight className="w-6 h-6 text-blue-600 dark:text-sky-400" /> : <ToggleLeft className="w-6 h-6 text-slate-400" />}
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">Banner trước phần Chân trang website</p>
+          </div>
+
+          {/* Tốc độ trượt */}
+          <div className="p-3 bg-white dark:bg-slate-900/80 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-1.5 flex flex-col justify-between">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-indigo-500" /> Tốc độ chuyển
+              </span>
+              <select
+                value={slideSettings.banner_slide_interval}
+                onChange={(e) => updateSettingKey("banner_slide_interval", e.target.value)}
+                className="input-base text-xs py-1 px-2 h-7 w-24 rounded-lg bg-slate-50 dark:bg-slate-800"
+              >
+                <option value="3000">3 giây</option>
+                <option value="5000">5 giây</option>
+                <option value="7000">7 giây</option>
+                <option value="10000">10 giây</option>
+              </select>
+            </div>
+            <label className="flex items-center gap-1.5 cursor-pointer pt-0.5">
+              <input
+                type="checkbox"
+                checked={slideSettings.banner_slide_auto_play}
+                onChange={(e) => updateSettingKey("banner_slide_auto_play", e.target.checked)}
+                className="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Tự động trượt ảnh</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Danh sách & Thêm Banner ────────────────────────────────────────── */}
+      <div className="flex items-center justify-between pt-1">
+        <div>
+          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Danh sách ảnh Banner</h3>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Thêm, sửa, xóa và bật/tắt từng banner riêng lẻ</p>
+        </div>
+        <button onClick={() => { setAdding(true); setEditId(null); resetForm(); }} className="btn-primary flex items-center gap-1.5 text-xs sm:text-sm py-2 px-3.5 shadow-sm">
+          <Plus className="w-4 h-4" /> Thêm banner mới
         </button>
       </div>
 
-      {(adding) && (
-        <div className="border border-blue-200 dark:border-blue-900/50 rounded-2xl p-4 bg-blue-50/50 dark:bg-blue-950/30 space-y-3">
+      {adding && (
+        <div className="border border-blue-200 dark:border-blue-900/50 rounded-2xl p-4 bg-blue-50/50 dark:bg-blue-950/30 space-y-3 animate-in fade-in-50">
           <h4 className="font-semibold text-slate-700 dark:text-slate-200 text-sm">{editId ? "Sửa banner" : "Banner mới"}</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Tiêu đề *"><input className="input-base text-sm" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Tên banner" /></Field>

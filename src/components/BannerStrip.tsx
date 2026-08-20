@@ -27,26 +27,45 @@ export default function BannerStrip({ position, className = "", isSticky = false
   const [failedIds, setFailedIds] = useState<Set<string>>(new Set());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const [intervalMs, setIntervalMs] = useState(5000);
+  const [autoPlay, setAutoPlay] = useState(true);
+
   useEffect(() => {
     fetch("/api/banners")
       .then((r) => r.json())
       .then((all: Banner[]) => {
-        const filtered = all.filter((b) => b.position === position);
-        setBanners(filtered);
+        if (Array.isArray(all)) {
+          const filtered = all.filter((b) => b.position === position);
+          setBanners(filtered);
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/banners/settings")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.settings) {
+          if (d.settings.banner_slide_interval) {
+            setIntervalMs(Number(d.settings.banner_slide_interval) || 5000);
+          }
+          if (d.settings.banner_slide_auto_play !== undefined) {
+            setAutoPlay(d.settings.banner_slide_auto_play === "true");
+          }
+        }
       })
       .catch(() => {});
   }, [position]);
 
   const activeBanners = banners.filter((b) => !failedIds.has(b.id));
 
-  // Auto-slide mỗi 5 giây nếu có nhiều banner
+  // Auto-slide nếu có nhiều banner và autoPlay bật
   useEffect(() => {
-    if (activeBanners.length <= 1) return;
+    if (activeBanners.length <= 1 || !autoPlay) return;
     timerRef.current = setInterval(() => {
       setCurrent((c) => (c + 1) % activeBanners.length);
-    }, 5000);
+    }, intervalMs);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [activeBanners.length]);
+  }, [activeBanners.length, autoPlay, intervalMs]);
 
   if (!activeBanners.length || dismissed) return null;
 

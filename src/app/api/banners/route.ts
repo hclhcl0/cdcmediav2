@@ -10,13 +10,38 @@ export async function GET(req: NextRequest) {
   if (all && (!session || session.role !== "ADMIN"))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const now = new Date();
+  // If public request, check if banner slide is enabled
+  if (!all) {
+    const settings = await prisma.appSetting.findMany({
+      where: {
+        key: { in: ["banner_slide_enabled", "banner_slide_top", "banner_slide_middle", "banner_slide_bottom"] },
+      },
+    });
+
+    const map = Object.fromEntries(settings.map((s) => [s.key, s.value]));
+    if (map.banner_slide_enabled === "false") {
+      return NextResponse.json([]);
+    }
+
+    const disabledPositions: string[] = [];
+    if (map.banner_slide_top === "false") disabledPositions.push("TOP");
+    if (map.banner_slide_middle === "false") disabledPositions.push("MIDDLE");
+    if (map.banner_slide_bottom === "false") disabledPositions.push("BOTTOM");
+
+    const now = new Date();
+    const banners = await prisma.banner.findMany({
+      where: {
+        isActive: true,
+        ...(disabledPositions.length > 0 ? { position: { notIn: disabledPositions } } : {}),
+        OR: [{ startAt: null }, { startAt: { lte: now } }],
+        AND: [{ OR: [{ endAt: null }, { endAt: { gte: now } }] }],
+      },
+      orderBy: [{ position: "asc" }, { sortOrder: "asc" }],
+    });
+    return NextResponse.json(banners);
+  }
+
   const banners = await prisma.banner.findMany({
-    where: all ? undefined : {
-      isActive: true,
-      OR: [{ startAt: null }, { startAt: { lte: now } }],
-      AND: [{ OR: [{ endAt: null }, { endAt: { gte: now } }] }],
-    },
     orderBy: [{ position: "asc" }, { sortOrder: "asc" }],
   });
   return NextResponse.json(banners);
