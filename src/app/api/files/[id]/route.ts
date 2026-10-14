@@ -166,7 +166,10 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
 
-  const file = await prisma.mediaFile.findUnique({ where: { id } });
+  const file = await prisma.mediaFile.findUnique({
+    where: { id },
+    include: { attachments: true }
+  });
   if (!file) return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 });
 
   const isOwner = file.uploaderId === session.userId;
@@ -174,16 +177,36 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Không có quyền" }, { status: 403 });
   }
 
-  // Remove from storage
-  if (file.filepath.startsWith("gdrive://")) {
+  // 1. Remove attachments from storage
+  if (file.attachments && file.attachments.length > 0) {
+    for (const att of file.attachments) {
+      if (att.filepath.startsWith("gdrive://") || att.driveFileId) {
+        try {
+          if (att.driveFileId) await deleteFromDrive(att.driveFileId);
+        } catch (e) {
+          console.warn(`[delete] Attachment Drive delete failed for ${att.id}:`, e);
+        }
+      } else if (att.filepath && att.filepath !== "external") {
+        const localPath = path.join(process.cwd(), "uploads", att.filepath);
+        if (existsSync(localPath)) {
+          try { await unlink(localPath); } catch {}
+        }
+      }
+    }
+  }
+
+  // 2. Remove main file from storage
+  if (file.filepath.startsWith("gdrive://") || file.driveFileId) {
     try {
-      await deleteFromDrive(file.driveFileId!);
+      if (file.driveFileId) await deleteFromDrive(file.driveFileId);
     } catch (e) {
       console.warn("[delete] Drive delete failed:", e);
     }
-  } else {
+  } else if (file.filepath !== "external") {
     const localPath = path.join(process.cwd(), "uploads", file.filepath);
-    if (existsSync(localPath)) await unlink(localPath);
+    if (existsSync(localPath)) {
+      try { await unlink(localPath); } catch {}
+    }
   }
 
   await prisma.mediaFile.delete({ where: { id } });

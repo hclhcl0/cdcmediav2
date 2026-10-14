@@ -38,20 +38,44 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   const category = await prisma.category.findUnique({ where: { id } });
   if (!category) return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 });
 
-  // Cascade handled by Prisma — delete files first manually so storage is cleaned
-  const files = await prisma.mediaFile.findMany({ where: { categoryId: id } });
+  // Cascade handled by Prisma — delete files and attachments first manually so storage is cleaned
+  const files = await prisma.mediaFile.findMany({
+    where: { categoryId: id },
+    include: { attachments: true }
+  });
+
+  const { deleteFromDrive } = await import("@/lib/gdrive");
+  const { unlink } = await import("fs/promises");
+  const { existsSync } = await import("fs");
+  const path = await import("path");
+
   for (const f of files) {
-    if (f.filepath.startsWith("gdrive://")) {
+    // Delete attachments
+    if (f.attachments && f.attachments.length > 0) {
+      for (const att of f.attachments) {
+        if (att.filepath.startsWith("gdrive://") || att.driveFileId) {
+          try {
+            if (att.driveFileId) await deleteFromDrive(att.driveFileId);
+          } catch {}
+        } else if (att.filepath && att.filepath !== "external") {
+          const local = path.join(process.cwd(), "uploads", att.filepath);
+          if (existsSync(local)) {
+            try { await unlink(local); } catch {}
+          }
+        }
+      }
+    }
+
+    // Delete main file
+    if (f.filepath.startsWith("gdrive://") || f.driveFileId) {
       try {
-        const { deleteFromDrive } = await import("@/lib/gdrive");
-        await deleteFromDrive(f.driveFileId!);
+        if (f.driveFileId) await deleteFromDrive(f.driveFileId);
       } catch {}
-    } else {
-      const { unlink } = await import("fs/promises");
-      const { existsSync } = await import("fs");
-      const path = await import("path");
+    } else if (f.filepath !== "external") {
       const local = path.join(process.cwd(), "uploads", f.filepath);
-      if (existsSync(local)) await unlink(local);
+      if (existsSync(local)) {
+        try { await unlink(local); } catch {}
+      }
     }
   }
 

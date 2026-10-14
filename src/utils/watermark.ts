@@ -6,39 +6,51 @@ import fontkit from "@pdf-lib/fontkit";
 import sharp from "sharp";
 
 let fontBuffer: Buffer | null = null;
-const FONT_DOWNLOAD_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/roboto/Roboto-Regular.ttf";
+const FONT_FALLBACK_DOWNLOAD_URL = "https://github.com/googlefonts/roboto-2/raw/main/src/hinted/Roboto-Regular.ttf";
 const WATERMARK_TEXT = "Tài liệu thuộc CDC Đà Nẵng";
 
 async function getFontBuffer(): Promise<Buffer> {
   if (fontBuffer) return fontBuffer;
 
-  const fontPath = path.join(process.cwd(), "Roboto-Regular.ttf");
-  if (fs.existsSync(fontPath)) {
-    try {
-      fontBuffer = fs.readFileSync(fontPath);
-      return fontBuffer;
-    } catch (e) {
-      console.error("[watermark] Failed to read cached font:", e);
+  const candidatePaths = [
+    path.join(process.cwd(), "src", "assets", "fonts", "Roboto-Regular.ttf"),
+    path.join(process.cwd(), "public", "fonts", "Roboto-Regular.ttf"),
+    path.join(process.cwd(), "Roboto-Regular.ttf"),
+  ];
+
+  for (const fontPath of candidatePaths) {
+    if (fs.existsSync(fontPath)) {
+      try {
+        fontBuffer = fs.readFileSync(fontPath);
+        return fontBuffer;
+      } catch (e) {
+        console.warn(`[watermark] Failed to read font from ${fontPath}:`, e);
+      }
     }
   }
 
+  // Fallback download if local files are missing
   try {
-    console.log("[watermark] Downloading font from Google Fonts...");
-    const res = await fetch(FONT_DOWNLOAD_URL);
+    console.log("[watermark] Downloading fallback font from Google Fonts repository...");
+    const res = await fetch(FONT_FALLBACK_DOWNLOAD_URL);
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const arrayBuffer = await res.arrayBuffer();
     fontBuffer = Buffer.from(arrayBuffer);
     
-    // Save to disk cache asynchronously so we don't block
-    fs.writeFile(fontPath, fontBuffer, (err) => {
-      if (err) console.error("[watermark] Failed to cache font to disk:", err);
-      else console.log("[watermark] Font cached successfully to disk.");
-    });
+    // Save to disk cache asynchronously
+    const fontSavePath = path.join(process.cwd(), "public", "fonts", "Roboto-Regular.ttf");
+    try {
+      const dir = path.dirname(fontSavePath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(fontSavePath, fontBuffer);
+      console.log("[watermark] Font cached successfully to", fontSavePath);
+    } catch (saveErr) {
+      console.warn("[watermark] Could not cache font to disk:", saveErr);
+    }
     
     return fontBuffer;
   } catch (err) {
-    console.error("[watermark] Failed to download font:", err);
-    // If download fails, try to fallback to a basic system font or throw
+    console.error("[watermark] Failed to obtain font buffer:", err);
     throw err;
   }
 }

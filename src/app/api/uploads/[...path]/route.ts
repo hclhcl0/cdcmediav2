@@ -16,13 +16,13 @@ const MIME: Record<string, string> = {
 export async function GET(_: NextRequest, { params }: Params) {
   const { path: segments } = await params;
 
-  // Chặn path traversal
+  // Chặn path traversal an toàn tuyệt đối trên cả Windows và Linux
   const relative = segments.join("/");
   const uploadsDir = path.resolve(process.cwd(), "uploads");
   const filePath = path.resolve(uploadsDir, relative);
 
-  // Đảm bảo đường dẫn tuyệt đối nằm bên trong thư mục uploads
-  if (!filePath.startsWith(uploadsDir)) {
+  const relFromUploads = path.relative(uploadsDir, filePath);
+  if (relFromUploads.startsWith("..") || path.isAbsolute(relFromUploads)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

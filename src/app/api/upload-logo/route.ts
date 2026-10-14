@@ -29,5 +29,8 @@ export async function POST(req: NextRequest) {
 
   await writeFile(logoPath, buffer);
 
+  const { logActivity } = await import("@/lib/logger");
+  await logActivity(session.userId, "UPDATE_SETTINGS", "Cập nhật logo website");
+
   return NextResponse.json({ ok: true, url: `/api/uploads/logo.png?v=${Date.now()}` }, { status: 201 });
 }

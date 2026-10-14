@@ -9,8 +9,12 @@ export type SessionPayload = {
   displayName?: string;
 };
 
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === "production") {
+  console.warn("⚠️ [SECURITY WARNING] JWT_SECRET is not configured in production! Please define JWT_SECRET in your .env file.");
+}
+
 const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "cdc-danang-uploadss-jwt-secret-fallback-dev-only"
+  process.env.JWT_SECRET || "cdc-danang-uploadss-jwt-secret-fallback-dev-only"
 );
 
 const COOKIE_NAME = "cdc_session";

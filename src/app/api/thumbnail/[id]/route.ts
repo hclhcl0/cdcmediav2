@@ -70,14 +70,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       // Permanent Google Drive thumbnail CDN endpoint
       const driveThumbUrl = `https://drive.google.com/thumbnail?id=${file.driveFileId}&sz=w800`;
       const response = NextResponse.redirect(driveThumbUrl);
-      response.headers.set("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=43200");
+      response.headers.set("Cache-Control", "public, s-maxage=604800, max-age=86400, stale-while-revalidate=86400");
       return response;
     }
 
     // 3. Fallback to custom thumbnailUrl if exists
     if (file.thumbnailUrl) {
       const response = NextResponse.redirect(file.thumbnailUrl);
-      response.headers.set("Cache-Control", "public, max-age=86400");
+      response.headers.set("Cache-Control", "public, s-maxage=604800, max-age=86400, stale-while-revalidate=86400");
       return response;
     }
 

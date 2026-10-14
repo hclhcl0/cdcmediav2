@@ -21,7 +21,13 @@ export async function POST(req: NextRequest) {
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
-      return NextResponse.json({ error: "Mật khẩu không đúng" }, { status: 401 });
+      await logActivity(
+        user.id,
+        "LOGIN",
+        `Đăng nhập thất bại (sai mật khẩu) cho tài khoản: "${username}"`,
+        req.headers.get("x-forwarded-for") ?? undefined
+      );
+      return NextResponse.json({ error: "Tên đăng nhập hoặc mật khẩu không chính xác" }, { status: 401 });
     }
 
     await createSession({

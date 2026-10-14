@@ -12,10 +12,10 @@ export async function GET(req: NextRequest) {
     where: {
       isPublic: true,
       OR: [
-        { title: { contains: q } },
-        { description: { contains: q } },
-        { tags: { some: { tag: { name: { contains: q } } } } },
-        { category: { name: { contains: q } } },
+        { title: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+        { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
+        { category: { name: { contains: q, mode: "insensitive" } } },
       ],
     },
     include: {
