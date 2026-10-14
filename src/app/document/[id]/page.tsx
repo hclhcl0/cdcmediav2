@@ -12,8 +12,45 @@ import type { Metadata } from "next";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const file = await prisma.mediaFile.findUnique({ where: { id } });
-  if (!file) return { title: "Không tìm thấy tài liệu" };
-  return { title: `${file.title} - CDC Media` };
+  if (!file) return { title: "Không tìm thấy tài liệu - CDC Media" };
+
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://media.ksbtdanang.vn").replace(/\/+$/, "");
+  let thumbUrl = file.thumbnailUrl;
+  if (!thumbUrl) {
+    thumbUrl = `${baseUrl}/api/thumbnail/${file.id}`;
+  } else if (thumbUrl.startsWith("/")) {
+    thumbUrl = `${baseUrl}${thumbUrl}`;
+  }
+
+  const description = file.description && file.description.trim().length > 5
+    ? file.description.trim()
+    : `Xem và tải tài liệu/video truyền thông y tế chính thức: ${file.title} - Trung tâm Kiểm soát bệnh tật (CDC) TP. Đà Nẵng`;
+
+  return {
+    title: `${file.title} - CDC Media Đà Nẵng`,
+    description,
+    openGraph: {
+      title: file.title,
+      description,
+      url: `${baseUrl}/document/${file.id}`,
+      siteName: "Ngân hàng Tài liệu Truyền thông CDC Đà Nẵng",
+      images: [
+        {
+          url: thumbUrl,
+          width: 1200,
+          height: 630,
+          alt: file.title,
+        },
+      ],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: file.title,
+      description,
+      images: [thumbUrl],
+    },
+  };
 }
 
 export default async function DocumentPage({ params }: { params: Promise<{ id: string }> }) {
