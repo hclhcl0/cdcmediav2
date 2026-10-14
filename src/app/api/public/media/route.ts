@@ -18,7 +18,10 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit;
 
     const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
-    const origin = envUrl || req.nextUrl.origin || "http://media.ksbtdanang.vn";
+    let origin = envUrl || req.nextUrl.origin || "https://media.ksbtdanang.vn";
+    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+      origin = "https://media.ksbtdanang.vn";
+    }
     const baseUrl = origin.replace(/\/+$/, "");
 
     const where: any = { isPublic: true };
